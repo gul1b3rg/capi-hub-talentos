@@ -83,26 +83,31 @@ export const featuredJobs = [
 export const companyHighlights = [
   {
     title: 'Pool verificado',
-    description: 'Talentos con experiencia en seguros, fintech, siniestros, legal y tecnología.',
+    description:
+      'Talentos con trayectoria en compañías de seguros, corretaje, reaseguro, auditoría y áreas técnicas.',
   },
   {
     title: 'Consultores aliados',
-    description: 'Accedé a especialistas en transformación digital, UX y gobierno de datos.',
+    description:
+      'Accedé a especialistas en cumplimiento, prevención de fraude, formación comercial y gestión de riesgos, entre otras áreas de necesidad.',
   },
 ];
 
 export const talentHighlights = [
   {
-    title: 'Perfil dinámico',
-    description: 'Mostrá tus certificaciones, skills y links en un perfil inspirado en Hirslams.',
+    title: 'Perfil destacado',
+    description:
+      'Mostrá tu experiencia, certificaciones, ramos trabajados y formación técnica en un perfil claro y profesional.',
   },
   {
     title: 'Recomendaciones curadas',
-    description: 'Oportunidades alineadas a tus objetivos, seniority y disponibilidad.',
+    description:
+      'Recibí oportunidades acordes a tu experiencia, especialidad y disponibilidad en el sector asegurador.',
   },
   {
-    title: 'Mentorías y workshops',
-    description: 'Very soon: programas con líderes de la CAPI para acelerar tu carrera.',
+    title: 'Capacitaciones y mentorías',
+    description:
+      'Muy pronto: programas con líderes del mercado asegurador para impulsar tu crecimiento profesional.',
   },
 ];
 

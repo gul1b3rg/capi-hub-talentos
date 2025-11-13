@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import { LuBuilding2, LuUsers } from 'react-icons/lu';
 import { companyHighlights, talentHighlights } from '../data/content';
 
@@ -51,14 +51,14 @@ const AudienceSections = () => (
     <div className="grid gap-6 md:grid-cols-2">
       <Card
         title="Para Aseguradoras"
-        description="Encontrá perfiles con experiencia en seguros, tecnología, ventas, siniestros y más."
+        description="Encontr\u00e1 perfiles con experiencia en suscripci\u00f3n, siniestros, reaseguro, comercial, jur\u00eddico y m\u00e1s."
         items={companyHighlights}
         icon={LuBuilding2}
         cta={{ label: 'Publicar vacancia', to: '/publicar', variant: 'primary' }}
       />
       <Card
         title="Para Talentos"
-        description="Tu próximo desafío profesional puede estar en el ecosistema asegurador."
+        description="Tu pr\u00f3ximo desaf\u00edo profesional puede estar en suscripci\u00f3n, siniestros, reaseguro, comercial, prevenci\u00f3n de fraude o gesti\u00f3n de riesgos."
         items={talentHighlights}
         icon={LuUsers}
         cta={{ label: 'Ver oportunidades', to: '/vacancias', variant: 'secondary' }}
@@ -68,3 +68,5 @@ const AudienceSections = () => (
 );
 
 export default AudienceSections;
+
+
