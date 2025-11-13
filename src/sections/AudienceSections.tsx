@@ -51,14 +51,14 @@ const AudienceSections = () => (
     <div className="grid gap-6 md:grid-cols-2">
       <Card
         title="Para Aseguradoras"
-        description="Encontr\u00e1 perfiles con experiencia en suscripci\u00f3n, siniestros, reaseguro, comercial, jur\u00eddico y m\u00e1s."
+        description="Encontrá perfiles con experiencia en suscripción, siniestros, reaseguro, comercial, jurídico y más."
         items={companyHighlights}
         icon={LuBuilding2}
         cta={{ label: 'Publicar vacancia', to: '/publicar', variant: 'primary' }}
       />
       <Card
         title="Para Talentos"
-        description="Tu pr\u00f3ximo desaf\u00edo profesional puede estar en suscripci\u00f3n, siniestros, reaseguro, comercial, prevenci\u00f3n de fraude o gesti\u00f3n de riesgos."
+        description="Tu próximo desafío profesional puede estar en suscripción, siniestros, reaseguro, comercial, prevención de fraude o gestión de riesgos."
         items={talentHighlights}
         icon={LuUsers}
         cta={{ label: 'Ver oportunidades', to: '/vacancias', variant: 'secondary' }}
