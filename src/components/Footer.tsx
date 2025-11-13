@@ -8,10 +8,10 @@ const Footer = () => (
     <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-12 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-4">
         <a href="https://capi.com.py/" target="_blank" rel="noreferrer" className="inline-flex">
-          <img src={capiLogo} alt="Logo CAPI" className="h-14 w-auto" />
+          <img src={capiLogo} alt="Logo CAPI" className="h-16 w-auto" />
         </a>
         <div>
-          <p className="font-display text-lg">Talentos · Hub de Talentos de Seguros</p>
+          <p className="font-display text-lg">Hub de Talentos de Seguros</p>
           <p className="text-sm text-white/70">Powered by Cámara Paraguaya de Insurtech</p>
         </div>
       </div>
