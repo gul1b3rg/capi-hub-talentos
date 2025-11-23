@@ -1,69 +1,112 @@
-const Publicar = () => (
-  <section className="mx-auto mt-28 max-w-6xl px-4 pb-20 md:px-6">
-    <div className="rounded-[32px] border border-secondary/10 bg-white p-10 shadow-2xl">
-      <p className="text-xs uppercase tracking-[0.4em] text-secondary/60">Publicar vacancia</p>
-      <h2 className="mt-2 font-display text-4xl text-secondary">Activá tu búsqueda en minutos</h2>
-      <p className="mt-3 text-secondary/70">Compartí los datos clave y nuestro equipo activa el matching.</p>
-      <form className="mt-8 grid gap-6 md:grid-cols-2">
-        <label className="text-sm font-semibold text-secondary/80">
-          Cargo
-          <input
-            type="text"
-            placeholder="Ej. Líder de Innovación"
-            className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 text-base text-secondary focus:border-primary focus:outline-none"
-          />
-        </label>
-        <label className="text-sm font-semibold text-secondary/80">
-          Empresa
-          <input
-            type="text"
-            placeholder="Nombre de tu organización"
-            className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 text-base text-secondary focus:border-primary focus:outline-none"
-          />
-        </label>
-        <label className="text-sm font-semibold text-secondary/80">
-          Modalidad
-          <select className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 text-base text-secondary focus:border-primary focus:outline-none">
-            <option>Híbrido</option>
-            <option>Remoto</option>
-            <option>Presencial</option>
-          </select>
-        </label>
-        <label className="text-sm font-semibold text-secondary/80">
-          Ubicación
-          <input
-            type="text"
-            placeholder="Ciudad, país"
-            className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 text-base text-secondary focus:border-primary focus:outline-none"
-          />
-        </label>
-        <label className="md:col-span-2 text-sm font-semibold text-secondary/80">
-          Descripción
-          <textarea
-            rows={4}
-            placeholder="Compartí responsabilidades, stack y soft skills"
-            className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 text-base text-secondary focus:border-primary focus:outline-none"
-          />
-        </label>
-        <label className="md:col-span-2 text-sm font-semibold text-secondary/80">
-          Beneficios o salario estimado
-          <input
-            type="text"
-            placeholder="Gs. 20M - 25M + bonos"
-            className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 text-base text-secondary focus:border-primary focus:outline-none"
-          />
-        </label>
-        <div className="md:col-span-2 flex flex-wrap gap-4">
-          <button type="submit" className="rounded-full bg-primary px-8 py-3 font-semibold text-white shadow-lg">
-            Enviar a curaduría
-          </button>
-          <p className="text-sm text-secondary/60">
-            Nuestro equipo revisa cada vacancia antes de publicarla para asegurar la calidad del pool.
-          </p>
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import JobForm from '../components/JobForm';
+import { useCurrentProfile } from '../context/AuthContext';
+import { fetchCompanyByOwner } from '../lib/companyService';
+import { createJob } from '../lib/jobService';
+import type { JobFormValues } from '../types/jobs';
+
+const mapFormValues = (values: JobFormValues) => ({
+  title: values.title,
+  description: values.description,
+  location: values.location,
+  modality: values.modality,
+  area: values.area,
+  seniority: values.seniority,
+  salary_range: values.salary_range,
+  status: values.status,
+  deadline: values.deadline ? new Date(values.deadline).toISOString() : null,
+  published_at: values.status === 'Activa' ? new Date().toISOString() : null,
+});
+
+const Publicar = () => {
+  const { user, profile } = useCurrentProfile();
+  const navigate = useNavigate();
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const loadCompany = async () => {
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const company = await fetchCompanyByOwner(user.id);
+        if (!company) {
+          setError('Necesitas crear tu empresa antes de publicar vacancias.');
+        } else {
+          setCompanyId(company.id);
+        }
+      } catch (companyError) {
+        setError(companyError instanceof Error ? companyError.message : 'Error obteniendo empresa.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCompany();
+  }, [user?.id]);
+
+  const handleSubmit = async (values: JobFormValues) => {
+    if (!companyId) return;
+    setSubmitting(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await createJob(companyId, mapFormValues(values), values.tags);
+      setSuccess('Vacancia creada con éxito.');
+      setTimeout(() => navigate('/dashboard/mis-vacancias'), 1500);
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'No pudimos crear la vacancia.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <section className="mx-auto max-w-4xl px-4 py-16">
+        <p className="text-center text-secondary/70">Verificando tu empresa...</p>
+      </section>
+    );
+  }
+
+  if (!companyId) {
+    return (
+      <section className="mx-auto max-w-4xl px-4 py-16">
+        <div className="rounded-3xl border border-dashed border-secondary/30 bg-white/60 p-10 text-center shadow-xl">
+          <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">Publicar</p>
+          <h1 className="mt-3 text-3xl font-semibold text-secondary">Necesitas crear tu empresa</h1>
+          <p className="mt-2 text-secondary/70">Crea tu perfil de empresa antes de publicar vacancias.</p>
         </div>
-      </form>
-    </div>
-  </section>
-);
+      </section>
+    );
+  }
+
+  return (
+    <section className="mx-auto max-w-4xl px-4 py-16">
+      <div className="rounded-3xl border border-white/40 bg-white/90 p-8 shadow-2xl backdrop-blur">
+        <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">Publicar vacancia</p>
+        <h1 className="mt-2 text-3xl font-semibold text-secondary">
+          {profile?.full_name ?? 'Equipo'}, comparte una nueva oportunidad
+        </h1>
+        <p className="mt-1 text-secondary/70">Completa los campos para llegar al pool de talentos aseguradores.</p>
+        <div className="mt-8">
+          <JobForm
+            mode="create"
+            onSubmit={handleSubmit}
+            submitting={submitting}
+            errorMessage={error}
+            successMessage={success}
+          />
+        </div>
+      </div>
+    </section>
+  );
+};
 
 export default Publicar;

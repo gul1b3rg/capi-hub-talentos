@@ -1,74 +1,93 @@
-import { featuredJobs } from '../data/content';
+import { useEffect, useState } from 'react';
+import JobCard from '../components/JobCard';
+import JobListFilters from '../components/JobListFilters';
+import { fetchCompaniesForFilters } from '../lib/companyService';
+import { fetchPublicJobs, type JobWithRelations } from '../lib/jobService';
 
-const filters = ['Todas', 'Remoto', 'Híbrido', 'Presencial'];
+interface Filters {
+  area: string;
+  seniority: string;
+  modality: string;
+  location: string;
+  companyId: string;
+  search: string;
+}
 
-const Vacancias = () => (
-  <section className="mx-auto mt-28 max-w-6xl px-4 pb-20 md:px-6">
-    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-      <div>
-        <p className="text-xs uppercase tracking-[0.4em] text-secondary/60">Vacancias</p>
-        <h2 className="font-display text-4xl text-secondary">Oportunidades curadas</h2>
-        <p className="text-secondary/70">
-          Roles estratégicos para perfiles con experiencia en seguros, innovación y tecnología.
+const defaultFilters: Filters = {
+  area: '',
+  seniority: '',
+  modality: '',
+  location: '',
+  companyId: '',
+  search: '',
+};
+
+const Vacancias = () => {
+  const [filters, setFilters] = useState<Filters>(defaultFilters);
+  const [jobs, setJobs] = useState<JobWithRelations[]>([]);
+  const [companyOptions, setCompanyOptions] = useState<{ id: string; name: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadCompanies = async () => {
+      try {
+        const data = await fetchCompaniesForFilters();
+        setCompanyOptions(data);
+      } catch {
+        // ignore filter load errors
+      }
+    };
+    loadCompanies();
+  }, []);
+
+  useEffect(() => {
+    const loadJobs = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        console.log('[Vacancias] Fetching jobs with filters', filters);
+        const data = await fetchPublicJobs(filters);
+        setJobs(data);
+        console.log('[Vacancias] Jobs loaded', data.length);
+      } catch (loadError) {
+        console.error('[Vacancias] Error fetching jobs', loadError);
+        setError(loadError instanceof Error ? loadError.message : 'No se pudieron cargar las vacancias.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadJobs();
+  }, [filters]);
+
+  return (
+    <section className="mx-auto max-w-6xl px-4 py-16">
+      <div className="mb-10 text-center">
+        <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">Vacancias activas</p>
+        <h1 className="mt-2 text-4xl font-semibold text-secondary">Explora oportunidades curadas</h1>
+        <p className="text-secondary/70">Filtra por área, seniority, modalidad o empresa.</p>
+      </div>
+
+      <JobListFilters filters={filters} onChange={setFilters} companyOptions={companyOptions} />
+
+      {loading ? (
+        <p className="mt-10 text-center text-secondary/70">Cargando vacancias...</p>
+      ) : error ? (
+        <p className="mt-10 rounded-3xl bg-red-50 px-6 py-4 text-center text-red-600">{error}</p>
+      ) : jobs.length === 0 ? (
+        <p className="mt-10 rounded-3xl border border-dashed border-secondary/30 px-6 py-8 text-center text-secondary/60">
+          No encontramos vacancias que coincidan con tus filtros. Ajusta los criterios para ver nuevas opciones.
         </p>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {filters.map((filter) => (
-          <button
-            key={filter}
-            type="button"
-            className={`rounded-full border px-4 py-2 text-sm font-semibold ${
-              filter === 'Todas' ? 'border-secondary bg-secondary text-white' : 'border-secondary/20 text-secondary'
-            }`}
-          >
-            {filter}
-          </button>
-        ))}
-      </div>
-    </div>
-    <div className="mt-10 grid gap-6">
-      {featuredJobs.map((job) => (
-        <article
-          key={job.id}
-          className="rounded-[32px] border border-secondary/10 bg-white p-6 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl"
-        >
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-secondary/60">{job.company}</p>
-              <h3 className="font-display text-2xl text-secondary">{job.title}</h3>
-              <p className="text-secondary/70">{job.location}</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="rounded-full bg-primary/10 px-4 py-1 text-sm text-primary">{job.modality}</span>
-              <span className="rounded-full bg-secondary px-4 py-1 text-sm text-white">{job.status}</span>
-            </div>
-          </div>
-          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-secondary/70">
-            <span className="rounded-full border border-secondary/20 px-3 py-1 font-semibold">{job.salary}</span>
-            {job.tags.map((tag) => (
-              <span key={tag} className="rounded-full bg-background px-3 py-1">
-                {tag}
-              </span>
-            ))}
-          </div>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <button
-              type="button"
-              className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white shadow-lg"
-            >
-              Postular
-            </button>
-            <button
-              type="button"
-              className="rounded-full border border-secondary/20 px-5 py-2 text-sm font-semibold text-secondary"
-            >
-              Guardar
-            </button>
-          </div>
-        </article>
-      ))}
-    </div>
-  </section>
-);
+      ) : (
+        <div className="mt-10 grid gap-5">
+          {jobs.map((job) => (
+            <JobCard key={job.id} job={job} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+};
 
 export default Vacancias;
