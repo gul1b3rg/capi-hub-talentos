@@ -18,6 +18,12 @@ export interface Profile {
   role: ProfileRole;
   location: string | null;
   headline: string | null;
+  experience_years?: string | null;
+  area?: string | null;
+  availability?: string | null;
+  linkedin_url?: string | null;
+  cv_url?: string | null;
+  is_public_profile?: boolean | null;
   created_at: string;
 }
 
