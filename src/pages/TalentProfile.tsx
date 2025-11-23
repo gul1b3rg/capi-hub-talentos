@@ -77,7 +77,7 @@ const TalentProfile = () => {
     }
   };
 
-  if (loading) {
+  if (loading && !profile) {
     return (
       <section className="mx-auto max-w-4xl px-4 py-16">
         <p className="text-center text-secondary/70">Cargando perfil...</p>
