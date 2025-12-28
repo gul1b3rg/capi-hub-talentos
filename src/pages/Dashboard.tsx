@@ -127,18 +127,19 @@ const Dashboard = () => {
           >
             Editar perfil de empresa
           </Link>
-          <button
-            type="button"
-            className="flex-1 rounded-3xl border border-secondary/20 px-6 py-4 font-semibold text-secondary"
+          <Link
+            to="/dashboard/mis-vacancias"
+            className="flex-1 rounded-3xl border border-secondary/20 px-6 py-4 text-center font-semibold text-secondary hover:bg-secondary/5"
           >
             Ver todas mis vacancias
-          </button>
-          <button
-            type="button"
-            className="flex-1 rounded-3xl border border-secondary/20 px-6 py-4 font-semibold text-secondary"
+          </Link>
+          <Link
+            to="/dashboard/postulaciones"
+            className="flex-1 rounded-3xl border border-secondary/20 px-6 py-4 text-center font-semibold text-secondary hover:bg-secondary/5"
           >
             Ver postulaciones
-          </button>
+            {metrics.newApplications > 0 && ` (${metrics.newApplications} nuevas)`}
+          </Link>
         </div>
       </div>
     </section>

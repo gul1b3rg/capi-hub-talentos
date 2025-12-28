@@ -7,6 +7,8 @@ const RETRY_LIMIT = 2;
 const CV_BUCKET = 'cvs';
 const MAX_CV_SIZE = 3 * 1024 * 1024; // 3MB
 
+export type UploadProgressCallback = (progress: number) => void;
+
 const resizeImage = (blob: Blob) =>
   new Promise<Blob>((resolve, reject) => {
     const timeout = setTimeout(() => {
@@ -85,7 +87,7 @@ const uploadCompressedBlob = async (blob: Blob, referenceId: string, attempt = 0
   });
   const { error } = await withTimeout(
     uploadPromise,
-    'La subida del logo tardó demasiado. Intenta nuevamente o usa otro archivo/URL.',
+    'La subida del logo tardo demasiado. Intenta nuevamente o usa otro archivo/URL.',
   );
 
   if (error) {
@@ -118,7 +120,7 @@ export const uploadCompanyLogoFromUrl = async (logoUrl: string, referenceId: str
     clearTimeout(timeout);
     throw new Error(
       error instanceof DOMException && error.name === 'AbortError'
-        ? 'La descarga del logo tardó demasiado. Intenta con otra URL.'
+        ? 'La descarga del logo tardo demasiado. Intenta con otra URL.'
         : 'No pudimos descargar el logo desde la URL proporcionada.',
     );
   }
@@ -134,35 +136,75 @@ export const uploadCompanyLogoFromFile = async (file: File, referenceId: string)
   return uploadCompressedBlob(file, referenceId);
 };
 
-export const uploadCvFile = async (file: File, userId: string) => {
+export const uploadCvFile = async (file: File, userId: string, onProgress?: UploadProgressCallback, attempt = 0): Promise<string> => {
+  // eslint-disable-next-line no-console
+  console.log('[storageService] Upload CV start', { name: file.name, size: file.size, type: file.type });
   if (file.type !== 'application/pdf') {
     throw new Error('El CV debe ser un archivo PDF.');
   }
   if (file.size > MAX_CV_SIZE) {
-    throw new Error('El CV excede 3MB. Por favor sube un archivo más liviano.');
+    // eslint-disable-next-line no-console
+    console.warn('[storageService] CV rejected: too large', { size: file.size });
+    throw new Error('El CV excede 3MB. Por favor sube un archivo mas liviano.');
   }
 
   const path = `cvs/${userId}-${Date.now()}.pdf`;
 
-  const uploadPromise = supabase.storage.from(CV_BUCKET).upload(path, file, {
-    upsert: true,
-    contentType: 'application/pdf',
-  });
+  // Simular progreso suave durante upload
+  let progressInterval: NodeJS.Timeout | null = null;
 
-  const { error } = await withTimeout(
-    uploadPromise,
-    'La subida del CV tardó demasiado. Intenta nuevamente o usa un archivo más liviano.',
-  );
+  if (onProgress) {
+    onProgress(10); // Inicio más visible
 
-  if (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error uploading CV', error.message);
-    throw error;
+    let currentProgress = 10;
+    progressInterval = setInterval(() => {
+      // Incremento más lento y suave (nunca llega a 95)
+      currentProgress = Math.min(92, currentProgress + Math.random() * 8);
+      onProgress(currentProgress);
+    }, 500); // Intervalo más largo para progreso más suave
+  }
+
+  try {
+    const uploadPromise = supabase.storage.from(CV_BUCKET).upload(path, file, {
+      upsert: true,
+      contentType: 'application/pdf',
+    });
+
+    // Timeout más largo para archivos grandes (60 segundos)
+    const { error } = await withTimeout(
+      uploadPromise,
+      'La subida del CV tardo demasiado. Intenta nuevamente o verifica tu conexión a internet.',
+      60000,
+    );
+
+    if (progressInterval) clearInterval(progressInterval);
+
+    if (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error uploading CV', error.message);
+
+      // Reintentar si no se alcanzó el límite
+      if (attempt < RETRY_LIMIT) {
+        // eslint-disable-next-line no-console
+        console.warn('Retrying CV upload...', attempt + 1);
+        if (onProgress) onProgress(0); // Reset progress
+        return uploadCvFile(file, userId, onProgress, attempt + 1);
+      }
+
+      throw error;
+    }
+
+    if (onProgress) onProgress(100);
+  } catch (err) {
+    if (progressInterval) clearInterval(progressInterval);
+    throw err;
   }
 
   const {
     data: { publicUrl },
   } = supabase.storage.from(CV_BUCKET).getPublicUrl(path);
 
+  // eslint-disable-next-line no-console
+  console.log('[storageService] CV uploaded', { url: publicUrl });
   return publicUrl;
 };

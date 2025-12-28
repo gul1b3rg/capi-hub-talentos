@@ -40,12 +40,29 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 const PROFILE_CACHE_KEY = 'talentos-hub:last-profile';
 
+interface CachedProfile {
+  profile: Profile;
+  timestamp: number;
+}
+
+const PROFILE_TTL = 5 * 60 * 1000; // 5 minutos
+
 const readCachedProfile = (): Profile | null => {
   if (typeof window === 'undefined') return null;
   try {
     const raw = window.localStorage.getItem(PROFILE_CACHE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as Profile;
+
+    const cached = JSON.parse(raw) as CachedProfile;
+    const now = Date.now();
+
+    // Verificar si el cache expiró
+    if (now - cached.timestamp > PROFILE_TTL) {
+      window.localStorage.removeItem(PROFILE_CACHE_KEY);
+      return null;
+    }
+
+    return cached.profile;
   } catch {
     return null;
   }
@@ -54,7 +71,11 @@ const readCachedProfile = (): Profile | null => {
 const writeCachedProfile = (value: Profile | null) => {
   if (typeof window === 'undefined') return;
   if (value) {
-    window.localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(value));
+    const cached: CachedProfile = {
+      profile: value,
+      timestamp: Date.now(),
+    };
+    window.localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(cached));
   } else {
     window.localStorage.removeItem(PROFILE_CACHE_KEY);
   }
@@ -70,13 +91,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     writeCachedProfile(value);
   };
 
-  const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+  const fetchProfile = async (userId: string): Promise<Profile | null> => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
 
     if (error) {
       // eslint-disable-next-line no-console
       console.error('Error fetching profile', error.message);
       throw error;
+    }
+
+    // Si no hay perfil (null), retornamos null sin lanzar error
+    if (!data) {
+      // eslint-disable-next-line no-console
+      console.warn(`Profile not found for user ${userId}`);
+      return null;
     }
 
     return data as Profile;
@@ -102,6 +134,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     let isMounted = true;
+    let currentUserId: string | null = null;
+    let syncCompleted = false; // Track si sync() ya terminó
 
     const sync = async () => {
       setLoading(true);
@@ -113,6 +147,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (!isMounted) return;
 
         setSession(session);
+        currentUserId = session?.user?.id ?? null;
 
         if (session?.user) {
           try {
@@ -127,7 +162,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               console.warn('Failed to load profile during initial sync', profileError);
             }
           }
-        } // si no hay sesión aquí, mantenemos el perfil cacheado hasta el evento de auth
+        }
       } catch (sessionError) {
         if (isMounted) {
           setSession(null);
@@ -136,7 +171,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // eslint-disable-next-line no-console
         console.error('Error during session sync', sessionError);
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+          syncCompleted = true;
+        }
       }
     };
 
@@ -144,22 +182,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const { data: listener } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
       if (!isMounted) return;
-      setSession(nextSession);
-      if (nextSession?.user) {
-        setLoading(true);
-        try {
-          const fetchedProfile = await fetchProfile(nextSession.user.id);
-          applyProfile(fetchedProfile);
-        } catch {
+
+      const nextUserId = nextSession?.user?.id ?? null;
+
+      // Ignorar SOLO el evento SIGNED_IN que llega ANTES de que sync() termine
+      // Si sync() ya terminó, entonces es un login real que debemos procesar
+      if (_event === 'SIGNED_IN' && !syncCompleted) {
+        return;
+      }
+
+      // Solo hacer fetch si el usuario cambió (login/logout/cambio de cuenta)
+      if (nextUserId !== currentUserId) {
+        setSession(nextSession);
+        currentUserId = nextUserId;
+
+        if (nextSession?.user) {
+          setLoading(true);
+          try {
+            const fetchedProfile = await fetchProfile(nextSession.user.id);
+            applyProfile(fetchedProfile);
+          } catch {
+            applyProfile(null);
+            // eslint-disable-next-line no-console
+            console.warn('Failed to load profile from auth change');
+          } finally {
+            setLoading(false);
+          }
+        } else {
           applyProfile(null);
-          // eslint-disable-next-line no-console
-          console.warn('Failed to load profile from auth change');
-        } finally {
           setLoading(false);
         }
       } else {
-        applyProfile(null);
-        setLoading(false);
+        // Mismo usuario, solo actualizar session sin refetch
+        setSession(nextSession);
+
+        // Asegurar que loading se pone en false incluso cuando no hay cambio de usuario
+        if (nextSession) {
+          setLoading(false);
+        }
       }
     });
 

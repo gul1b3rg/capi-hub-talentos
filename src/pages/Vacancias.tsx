@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import JobCard from '../components/JobCard';
 import JobListFilters from '../components/JobListFilters';
+import InfiniteScrollTrigger from '../components/InfiniteScrollTrigger';
 import { fetchCompaniesForFilters } from '../lib/companyService';
 import { fetchPublicJobs, type JobWithRelations } from '../lib/jobService';
 
@@ -22,12 +23,35 @@ const defaultFilters: Filters = {
   search: '',
 };
 
+// Hook personalizado para debouncing
+const useDebouncedValue = <T,>(value: T, delay = 500): T => {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
 const Vacancias = () => {
   const [filters, setFilters] = useState<Filters>(defaultFilters);
   const [jobs, setJobs] = useState<JobWithRelations[]>([]);
   const [companyOptions, setCompanyOptions] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
+
+  // Aplicar debounce solo al campo de búsqueda (500ms)
+  const debouncedSearch = useDebouncedValue(filters.search, 500);
 
   useEffect(() => {
     const loadCompanies = async () => {
@@ -41,15 +65,20 @@ const Vacancias = () => {
     loadCompanies();
   }, []);
 
+  // Cuando cambian los filtros, resetear paginación y cargar desde cero
   useEffect(() => {
     const loadJobs = async () => {
       setLoading(true);
       setError(null);
+      setPage(0);
       try {
-        console.log('[Vacancias] Fetching jobs with filters', filters);
-        const data = await fetchPublicJobs(filters);
-        setJobs(data);
-        console.log('[Vacancias] Jobs loaded', data.length);
+        // Usar el valor debounced de search junto con los otros filtros
+        const activeFilters = { ...filters, search: debouncedSearch };
+        console.log('[Vacancias] Fetching jobs with filters', activeFilters);
+        const response = await fetchPublicJobs(activeFilters, { limit: 20, offset: 0 });
+        setJobs(response.jobs);
+        setHasMore(response.hasMore);
+        console.log('[Vacancias] Jobs loaded', response.jobs.length, 'hasMore:', response.hasMore);
       } catch (loadError) {
         console.error('[Vacancias] Error fetching jobs', loadError);
         setError(loadError instanceof Error ? loadError.message : 'No se pudieron cargar las vacancias.');
@@ -59,7 +88,29 @@ const Vacancias = () => {
     };
 
     loadJobs();
-  }, [filters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.area, filters.seniority, filters.modality, filters.location, filters.companyId, debouncedSearch]);
+
+  // Función para cargar más ofertas (infinite scroll)
+  const loadMoreJobs = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+
+    setLoadingMore(true);
+    try {
+      const activeFilters = { ...filters, search: debouncedSearch };
+      const nextPage = page + 1;
+      const response = await fetchPublicJobs(activeFilters, { limit: 20, offset: nextPage * 20 });
+
+      setJobs((prev) => [...prev, ...response.jobs]);
+      setHasMore(response.hasMore);
+      setPage(nextPage);
+      console.log('[Vacancias] Loaded more jobs', response.jobs.length, 'hasMore:', response.hasMore);
+    } catch (loadError) {
+      console.error('[Vacancias] Error loading more jobs', loadError);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasMore, filters, debouncedSearch, page]);
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-16">
@@ -80,11 +131,16 @@ const Vacancias = () => {
           No encontramos vacancias que coincidan con tus filtros. Ajusta los criterios para ver nuevas opciones.
         </p>
       ) : (
-        <div className="mt-10 grid gap-5">
-          {jobs.map((job) => (
-            <JobCard key={job.id} job={job} />
-          ))}
-        </div>
+        <>
+          <div className="mt-10 grid gap-5">
+            {jobs.map((job) => (
+              <JobCard key={job.id} job={job} />
+            ))}
+          </div>
+
+          {/* Infinite scroll trigger */}
+          <InfiniteScrollTrigger onLoadMore={loadMoreJobs} hasMore={hasMore} loading={loadingMore} />
+        </>
       )}
     </section>
   );

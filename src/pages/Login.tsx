@@ -2,12 +2,10 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
-import { useCurrentProfile } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { refreshProfile } = useCurrentProfile();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -23,25 +21,53 @@ const Login = () => {
     setLoading(true);
     setError(null);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email: form.email,
       password: form.password,
     });
 
-    if (error) {
-      setError(error.message);
+    if (signInError) {
+      setError(signInError.message);
       setLoading(false);
       return;
     }
 
+    // Obtener el perfil para determinar la ruta de redirección
     const userId = data.session?.user.id ?? data.user?.id;
-    const profile = await refreshProfile(userId);
+    if (userId) {
+      try {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle(); // ✅ No lanza error 406 si no encuentra
 
-    setLoading(false);
-    if (profile?.role === 'empresa') {
-      navigate('/dashboard', { replace: true });
+        setLoading(false);
+
+        if (profileError) {
+          console.error('Error fetching profile after login:', profileError);
+          setError('Error cargando tu perfil. Por favor, intenta nuevamente.');
+          return;
+        }
+
+        // Redirigir según el rol del perfil
+        if (profileData?.role === 'empresa') {
+          navigate('/dashboard', { replace: true });
+        } else if (profileData?.role === 'talento') {
+          navigate('/mi-perfil', { replace: true });
+        } else {
+          // Perfil no encontrado o sin rol - redirigir a perfil para completar
+          console.warn('Profile not found or missing role after login');
+          navigate('/mi-perfil', { replace: true });
+        }
+      } catch (err) {
+        console.error('Unexpected error during profile fetch:', err);
+        setLoading(false);
+        navigate('/mi-perfil', { replace: true });
+      }
     } else {
-      navigate('/mi-perfil', { replace: true });
+      setLoading(false);
+      setError('No se pudo obtener información del usuario.');
     }
   };
 

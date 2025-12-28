@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 
 interface Filters {
   area: string;
@@ -19,7 +19,7 @@ const modalityOptions = ['Presencial', 'Híbrido', 'Remoto'];
 const areaOptions = ['Siniestros', 'Comercial', 'TI', 'Innovación', 'Operaciones', 'Legal', 'Finanzas'];
 const experienceOptions = ['0-1 años', '1-3 años', '3-5 años', '5-8 años', '8+ años'];
 
-const JobListFilters = ({ filters, onChange, companyOptions }: JobListFiltersProps) => {
+const JobListFilters = memo(({ filters, onChange, companyOptions }: JobListFiltersProps) => {
   const uniqueCompanyOptions = useMemo(
     () =>
       companyOptions.filter(
@@ -145,6 +145,8 @@ const JobListFilters = ({ filters, onChange, companyOptions }: JobListFiltersPro
       </select>
     </div>
   );
-};
+});
+
+JobListFilters.displayName = 'JobListFilters';
 
 export default JobListFilters;

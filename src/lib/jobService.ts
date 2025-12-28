@@ -123,12 +123,29 @@ export const fetchJobDetail = async (jobId: string) => {
   return job;
 };
 
-export const fetchPublicJobs = async (filters: JobFilters) => {
+export interface PaginationOptions {
+  limit?: number;
+  offset?: number;
+}
+
+export interface PaginatedJobsResponse {
+  jobs: JobWithRelations[];
+  totalCount: number;
+  hasMore: boolean;
+}
+
+export const fetchPublicJobs = async (
+  filters: JobFilters,
+  options: PaginationOptions = {}
+): Promise<PaginatedJobsResponse> => {
+  const { limit = 20, offset = 0 } = options;
+
   let query = supabase
     .from('jobs')
-    .select('*, companies:company_id(id, name, industry, location, logo_url, owner_id), job_tags(tag)')
+    .select('*, companies:company_id(id, name, industry, location, logo_url, owner_id), job_tags(tag)', { count: 'exact' })
     .eq('status', 'Activa')
-    .order('published_at', { ascending: false });
+    .order('published_at', { ascending: false })
+    .range(offset, offset + limit - 1);
 
   if (filters.area) query = query.eq('area', filters.area);
   if (filters.seniority) query = query.eq('seniority', filters.seniority);
@@ -140,7 +157,7 @@ export const fetchPublicJobs = async (filters: JobFilters) => {
     query = query.or(`title.ilike.${term},description.ilike.${term}`);
   }
 
-  const { data, error } = await query;
+  const { data, error, count } = await query;
 
   if (error) {
     // eslint-disable-next-line no-console
@@ -148,7 +165,15 @@ export const fetchPublicJobs = async (filters: JobFilters) => {
     throw error;
   }
 
-  return (data ?? []).map((job) => mapJobResponse(job));
+  const jobs = (data ?? []).map((job) => mapJobResponse(job));
+  const totalCount = count ?? 0;
+  const hasMore = totalCount > offset + limit;
+
+  return {
+    jobs,
+    totalCount,
+    hasMore,
+  };
 };
 
 interface JobPayload {

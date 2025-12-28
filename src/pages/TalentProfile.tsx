@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 import { useCurrentProfile } from '../context/AuthContext';
 import { isProfileReadyForApplication, updateProfile } from '../lib/profileService';
 import { uploadCvFile } from '../lib/storageService';
+import { validateCvFile } from '../lib/fileValidation';
+import type { UploadState } from '../types/upload';
+import ProgressBar from '../components/ProgressBar';
+import FileUploadPreview from '../components/FileUploadPreview';
 
 const experienceRanges = ['0-1 años', '1-3 años', '3-5 años', '5-8 años', '8+ años'];
 const areaOptions = ['Siniestros', 'Comercial', 'TI', 'Reaseguro', 'Innovación', 'Operaciones', 'Legal', 'Finanzas'];
@@ -20,6 +24,13 @@ const TalentProfile = () => {
     is_public_profile: true,
   });
   const [cvFile, setCvFile] = useState<File | null>(null);
+  const [uploadState, setUploadState] = useState<UploadState>({
+    status: 'idle',
+    progress: 0,
+    error: null,
+    fileName: null,
+    fileSize: null,
+  });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -44,34 +55,120 @@ const TalentProfile = () => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleCvFileChange = (file: File | null) => {
+    if (!file) {
+      setCvFile(null);
+      setUploadState({
+        status: 'idle',
+        progress: 0,
+        error: null,
+        fileName: null,
+        fileSize: null,
+      });
+      return;
+    }
+
+    // Validar archivo inmediatamente
+    setUploadState((prev) => ({ ...prev, status: 'validating' }));
+
+    const validation = validateCvFile(file);
+
+    if (!validation.valid) {
+      setUploadState({
+        status: 'error',
+        progress: 0,
+        error: validation.error ?? 'Archivo inválido',
+        fileName: file.name,
+        fileSize: file.size,
+      });
+      setCvFile(null);
+      return;
+    }
+
+    // Archivo válido
+    setCvFile(file);
+    setUploadState({
+      status: 'idle',
+      progress: 0,
+      error: null,
+      fileName: file.name,
+      fileSize: file.size,
+    });
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!user?.id) return;
     setSaving(true);
     setError(null);
     setSuccess(null);
+
     try {
       let cvUrl = form.cv_url;
+
       if (cvFile) {
-        cvUrl = await uploadCvFile(cvFile, user.id);
+        // Validar nuevamente antes de subir
+        const validation = validateCvFile(cvFile);
+        if (!validation.valid) {
+          setUploadState((prev) => ({
+            ...prev,
+            status: 'error',
+            error: validation.error ?? 'Archivo inválido',
+          }));
+          throw new Error(validation.error);
+        }
+
+        // Iniciar upload con progreso
+        setUploadState((prev) => ({ ...prev, status: 'uploading', progress: 0 }));
+
+        cvUrl = await uploadCvFile(cvFile, user.id, (progress) => {
+          setUploadState((prev) => ({ ...prev, progress }));
+        });
+
+        // Upload exitoso
+        setUploadState((prev) => ({ ...prev, status: 'success', progress: 100 }));
       }
 
       await updateProfile(user.id, {
         full_name: form.full_name,
-        headline: form.headline,
-        location: form.location,
-        experience_years: form.experience_years,
-        area: form.area,
-        availability: form.availability,
-        linkedin_url: form.linkedin_url,
+        headline: form.headline || null,
+        location: form.location || null,
+        experience_years: form.experience_years || null,
+        area: form.area || null,
+        availability: form.availability || null,
+        linkedin_url: form.linkedin_url || null,
         cv_url: cvUrl,
         is_public_profile: form.is_public_profile,
       } as any);
+
       await refreshProfile(user.id);
       setSuccess('Perfil actualizado correctamente.');
       setCvFile(null);
+
+      // Reset upload state después de 3 segundos
+      setTimeout(() => {
+        setUploadState({
+          status: 'idle',
+          progress: 0,
+          error: null,
+          fileName: null,
+          fileSize: null,
+        });
+      }, 3000);
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'No pudimos guardar tu perfil.');
+      const errorMessage =
+        submitError instanceof Error ? submitError.message : 'No pudimos guardar tu perfil.';
+
+      setError(errorMessage);
+
+      // Actualizar estado de upload si falló durante upload
+      if (cvFile && uploadState.status === 'uploading') {
+        setUploadState((prev) => ({
+          ...prev,
+          status: 'error',
+          error: errorMessage,
+        }));
+      }
     } finally {
       setSaving(false);
     }
@@ -209,19 +306,42 @@ const TalentProfile = () => {
           <div className="grid gap-4 rounded-2xl border border-secondary/10 bg-secondary/5 px-4 py-4">
             <div>
               <p className="text-sm font-semibold text-secondary">Subir CV (PDF máx. 3MB)</p>
+              <p className="mt-1 text-xs text-secondary/60">
+                El archivo se validará antes de subir. Solo se aceptan PDFs menores a 3MB.
+              </p>
+
               <input
                 type="file"
                 accept="application/pdf"
-                className="mt-2 text-sm text-secondary"
-                onChange={(event) => setCvFile(event.target.files?.[0] ?? null)}
+                className="mt-3 block w-full text-sm text-secondary file:mr-4 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20"
+                onChange={(event) => handleCvFileChange(event.target.files?.[0] ?? null)}
+                disabled={uploadState.status === 'uploading'}
               />
-              {cvFile && <p className="text-xs text-secondary/70">Archivo: {cvFile.name}</p>}
-              {form.cv_url && (
+
+              {/* Preview del archivo seleccionado */}
+              {uploadState.fileName && (
+                <FileUploadPreview
+                  fileName={uploadState.fileName}
+                  fileSize={uploadState.fileSize ?? 0}
+                  status={uploadState.status}
+                  error={uploadState.error}
+                />
+              )}
+
+              {/* Progress bar durante upload */}
+              {uploadState.status === 'uploading' && (
+                <div className="mt-3">
+                  <ProgressBar progress={uploadState.progress} status="uploading" />
+                </div>
+              )}
+
+              {/* Link al CV actual */}
+              {form.cv_url && uploadState.status !== 'uploading' && (
                 <a
                   href={form.cv_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-2 inline-block text-sm font-semibold text-primary hover:underline"
+                  className="mt-3 inline-block text-sm font-semibold text-primary hover:underline"
                 >
                   Ver CV actual
                 </a>

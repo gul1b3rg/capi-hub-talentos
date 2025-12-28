@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
-import { upsertProfile } from '../lib/profileService';
+import { updateProfile } from '../lib/profileService';
 import { supabase } from '../lib/supabaseClient';
+import { useCurrentProfile } from '../context/AuthContext';
 
 const RegisterCompany = () => {
+  const navigate = useNavigate();
+  const { refreshProfile } = useCurrentProfile();
+
   const [form, setForm] = useState({
     companyName: '',
     email: '',
@@ -40,22 +45,35 @@ const RegisterCompany = () => {
     }
 
     try {
-      await upsertProfile(data.user.id, {
-        fullName: form.companyName,
+      // El trigger ya creó el perfil vacío, solo actualizamos los datos
+      const profile = await updateProfile(data.user.id, {
+        full_name: form.companyName,
         role: 'empresa',
-        location: form.location,
-        headline: form.headline,
+        location: form.location || null,
+        headline: form.headline || null,
       });
-      setSuccess('Registro exitoso. Confirmá tu email para acceder al panel de empresa.');
-      setForm({
-        companyName: '',
-        email: '',
-        password: '',
-        location: '',
-        headline: '',
-      });
+
+      // eslint-disable-next-line no-console
+      console.log('Profile updated successfully for company:', profile);
+
+      // Refrescar el contexto para que cargue el perfil recién actualizado
+      await refreshProfile(data.user.id);
+
+      setSuccess('Registro exitoso. Redirigiendo a tu dashboard...');
+
+      // Redirigir automáticamente después de 1.5 segundos
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 1500);
     } catch (profileError) {
-      setError(profileError instanceof Error ? profileError.message : 'Error creando perfil de empresa.');
+      // eslint-disable-next-line no-console
+      console.error('Failed to update company profile:', profileError);
+
+      setError(
+        profileError instanceof Error
+          ? `Error creando perfil de empresa: ${profileError.message}`
+          : 'Error creando perfil de empresa. Por favor, intenta nuevamente.'
+      );
     } finally {
       setLoading(false);
     }

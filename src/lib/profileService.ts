@@ -37,7 +37,14 @@ export const upsertProfile = async (userId: string, payload: ProfilePayload) => 
 };
 
 export const updateProfile = async (userId: string, values: Partial<Profile>) => {
-  const { data, error } = await supabase.from('profiles').update(values).eq('id', userId).select().single();
+  // Crear una promesa con timeout de 10 segundos
+  const updatePromise = supabase.from('profiles').update(values).eq('id', userId).select().single();
+
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('La actualización está tardando demasiado. Verifica las políticas RLS en Supabase.')), 10000);
+  });
+
+  const { data, error } = await Promise.race([updatePromise, timeoutPromise]) as any;
 
   if (error) {
     // eslint-disable-next-line no-console
@@ -51,4 +58,28 @@ export const updateProfile = async (userId: string, values: Partial<Profile>) =>
 export const isProfileReadyForApplication = (profile: Profile | null) => {
   if (!profile) return false;
   return Boolean(profile.full_name && profile.headline && profile.cv_url);
+};
+
+/**
+ * Obtiene el perfil público de un talento
+ * Solo accesible por empresas que tienen postulaciones de ese talento
+ */
+export const fetchPublicTalentProfile = async (talentId: string): Promise<Profile> => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, headline, location, experience_years, area, availability, linkedin_url, cv_url, is_public_profile, role')
+    .eq('id', talentId)
+    .eq('role', 'talento')
+    .single();
+
+  if (error) {
+    console.error('[profileService] Error fetching public talent profile', error.message);
+    throw new Error('No se pudo cargar el perfil del talento.');
+  }
+
+  if (!data) {
+    throw new Error('Perfil no encontrado.');
+  }
+
+  return data as Profile;
 };

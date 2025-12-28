@@ -2,13 +2,18 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useCurrentProfile } from '../context/AuthContext';
 import { fetchJobDetail, type JobWithRelations } from '../lib/jobService';
+import { isProfileReadyForApplication } from '../lib/profileService';
+import { createApplication, checkIfAlreadyApplied } from '../lib/applicationService';
 
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { role, user } = useCurrentProfile();
+  const { role, user, profile } = useCurrentProfile();
   const [job, setJob] = useState<JobWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [applying, setApplying] = useState(false);
+  const [alreadyApplied, setAlreadyApplied] = useState(false);
+  const [applicationSuccess, setApplicationSuccess] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -27,6 +32,48 @@ const JobDetail = () => {
 
     load();
   }, [id]);
+
+  // Verificar si ya se postuló
+  useEffect(() => {
+    const checkApplication = async () => {
+      if (!id || !user?.id || role !== 'talento') return;
+      try {
+        const applied = await checkIfAlreadyApplied(id, user.id);
+        setAlreadyApplied(applied);
+      } catch (err) {
+        console.error('[JobDetail] Error checking application', err);
+      }
+    };
+
+    checkApplication();
+  }, [id, user?.id, role]);
+
+  // Handler para postularse
+  const handleApply = async () => {
+    if (!id || !user?.id || !profile) return;
+
+    if (!isProfileReadyForApplication(profile)) {
+      alert('Debes completar tu perfil (nombre, titular y CV) antes de postularte.');
+      return;
+    }
+
+    setApplying(true);
+    setError(null);
+
+    try {
+      await createApplication(id, user.id, profile);
+      setApplicationSuccess(true);
+      setAlreadyApplied(true);
+    } catch (applyError) {
+      setError(
+        applyError instanceof Error
+          ? applyError.message
+          : 'No pudimos procesar tu postulación.'
+      );
+    } finally {
+      setApplying(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -89,15 +136,41 @@ const JobDetail = () => {
             </span>
           ))}
         </div>
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-8 flex flex-col gap-3">
           {role === 'talento' && (
-            <button
-              type="button"
-              className="rounded-full bg-secondary px-6 py-3 font-semibold text-white"
-              disabled
-            >
-              Postularme (Próximamente)
-            </button>
+            <>
+              {applicationSuccess && (
+                <div className="rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-700">
+                  ¡Postulación enviada exitosamente! La empresa revisará tu perfil pronto.
+                </div>
+              )}
+
+              {!profile || !isProfileReadyForApplication(profile) ? (
+                <div className="rounded-2xl bg-yellow-50 px-4 py-3 text-sm text-yellow-700">
+                  Completa tu perfil (nombre, titular y CV) para poder postularte.
+                  <Link to="/mi-perfil" className="ml-2 font-semibold underline">
+                    Ir a mi perfil
+                  </Link>
+                </div>
+              ) : alreadyApplied ? (
+                <button
+                  type="button"
+                  disabled
+                  className="rounded-full bg-green-600 px-6 py-3 font-semibold text-white cursor-not-allowed"
+                >
+                  Ya te postulaste
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleApply}
+                  disabled={applying || job.status !== 'Activa'}
+                  className="rounded-full bg-secondary px-6 py-3 font-semibold text-white hover:bg-secondary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {applying ? 'Postulando...' : 'Postularme'}
+                </button>
+              )}
+            </>
           )}
           {isOwner && (
             <Link

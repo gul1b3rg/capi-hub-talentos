@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import type { JobWithRelations } from '../lib/jobService';
 
@@ -5,7 +6,7 @@ interface JobCardProps {
   job: JobWithRelations;
 }
 
-const JobCard = ({ job }: JobCardProps) => (
+const JobCard = memo(({ job }: JobCardProps) => (
   <article className="rounded-3xl border border-white/40 bg-white/90 p-6 shadow-lg backdrop-blur transition hover:-translate-y-1 hover:shadow-2xl">
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div className="flex items-start gap-3">
@@ -15,6 +16,9 @@ const JobCard = ({ job }: JobCardProps) => (
               src={job.company.logo_url}
               alt={`Logo de ${job.company.name}`}
               className="h-12 w-12 object-contain"
+              loading="lazy"
+              width="48"
+              height="48"
             />
           ) : (
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary/5 text-sm font-semibold text-secondary">
@@ -50,6 +54,8 @@ const JobCard = ({ job }: JobCardProps) => (
       </Link>
     </div>
   </article>
-);
+));
+
+JobCard.displayName = 'JobCard';
 
 export default JobCard;

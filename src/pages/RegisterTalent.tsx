@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
-import { upsertProfile } from '../lib/profileService';
+import { updateProfile } from '../lib/profileService';
 import { supabase } from '../lib/supabaseClient';
+import { useCurrentProfile } from '../context/AuthContext';
 
 const RegisterTalent = () => {
+  const navigate = useNavigate();
+  const { refreshProfile } = useCurrentProfile();
+
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -41,22 +46,35 @@ const RegisterTalent = () => {
     }
 
     try {
-      await upsertProfile(data.user.id, {
-        fullName: form.fullName,
+      // El trigger ya creó el perfil vacío, solo actualizamos los datos
+      const profile = await updateProfile(data.user.id, {
+        full_name: form.fullName,
         role: 'talento',
-        location: form.location,
-        headline: form.headline,
+        location: form.location || null,
+        headline: form.headline || null,
       });
-      setSuccess('Registro exitoso. Revisá tu email para confirmar la cuenta.');
-      setForm({
-        fullName: '',
-        email: '',
-        password: '',
-        location: '',
-        headline: '',
-      });
+
+      // eslint-disable-next-line no-console
+      console.log('Profile updated successfully for talento:', profile);
+
+      // Refrescar el contexto para que cargue el perfil recién actualizado
+      await refreshProfile(data.user.id);
+
+      setSuccess('Registro exitoso. Redirigiendo a tu perfil...');
+
+      // Redirigir automáticamente después de 1.5 segundos
+      setTimeout(() => {
+        navigate('/mi-perfil', { replace: true });
+      }, 1500);
     } catch (profileError) {
-      setError(profileError instanceof Error ? profileError.message : 'Error creando tu perfil.');
+      // eslint-disable-next-line no-console
+      console.error('Failed to update talento profile:', profileError);
+
+      setError(
+        profileError instanceof Error
+          ? `Error creando tu perfil: ${profileError.message}`
+          : 'Error creando tu perfil. Por favor, intenta nuevamente.'
+      );
     } finally {
       setLoading(false);
     }
