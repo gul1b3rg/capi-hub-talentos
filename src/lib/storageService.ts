@@ -151,7 +151,7 @@ export const uploadCvFile = async (file: File, userId: string, onProgress?: Uplo
   const path = `cvs/${userId}-${Date.now()}.pdf`;
 
   // Simular progreso suave durante upload
-  let progressInterval: NodeJS.Timeout | null = null;
+  let progressInterval: number | null = null;
 
   if (onProgress) {
     onProgress(10); // Inicio más visible
