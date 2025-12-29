@@ -186,7 +186,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           console.log('[AuthContext] LinkedIn data extracted, creating profile', { name: linkedInData.name, sub: linkedInData.sub });
 
           try {
-            const { data: newProfile, error: createError } = await supabase
+            // eslint-disable-next-line no-console
+            console.log('[AuthContext] Attempting to INSERT profile with LinkedIn data...');
+
+            // Wrap INSERT with timeout to prevent hanging
+            const insertPromise = supabase
               .from('profiles')
               .insert({
                 id: userId,
@@ -198,9 +202,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               .select()
               .single();
 
+            const insertTimeout = new Promise<{ data: null, error: any }>((_, reject) =>
+              setTimeout(() => reject(new Error('INSERT timeout')), 5000)
+            );
+
+            const { data: newProfile, error: createError } = await Promise.race([insertPromise, insertTimeout]);
+
             if (createError) {
               // eslint-disable-next-line no-console
               console.error('[AuthContext] Error creating LinkedIn profile', createError);
+
+              // If timeout, it means RLS is blocking the INSERT too
+              if (createError.message === 'INSERT timeout') {
+                // eslint-disable-next-line no-console
+                console.error('[AuthContext] INSERT timed out - RLS policies are blocking INSERT. Profile may already exist or RLS needs fixing.');
+                // Try to fetch the profile again in case it was created by a trigger
+                const { data: existingProfile } = await supabase
+                  .from('profiles')
+                  .select('*')
+                  .eq('id', userId)
+                  .maybeSingle();
+
+                if (existingProfile) {
+                  // eslint-disable-next-line no-console
+                  console.log('[AuthContext] Found existing profile after INSERT timeout');
+                  return existingProfile as Profile;
+                }
+              }
+
               return null;
             }
 
