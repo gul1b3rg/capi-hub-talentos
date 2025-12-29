@@ -9,7 +9,7 @@ export interface ApplicationRecord {
   job_id: string;
   talent_id: string;
   status: ApplicationStatus;
-  notes: string | null;
+  notes?: string | null; // Opcional hasta que se ejecute fix_applications_updated_at.sql
   created_at: string;
   updated_at?: string; // Opcional hasta que se ejecute fix_applications_updated_at.sql
 }
@@ -116,7 +116,7 @@ export const createApplication = async (
       talent_id: talentId,
       status: 'Recibida',
     })
-    .select('id, job_id, talent_id, status, notes, created_at')
+    .select('id, job_id, talent_id, status, created_at')
     .single();
 
   if (error) {
@@ -140,7 +140,6 @@ export const fetchApplicationsByTalent = async (
       job_id,
       talent_id,
       status,
-      notes,
       created_at,
       jobs:job_id (
         id,
@@ -192,7 +191,6 @@ export const fetchApplicationsByJob = async (
       job_id,
       talent_id,
       status,
-      notes,
       created_at,
       profiles:talent_id (
         id,
@@ -235,7 +233,6 @@ export const fetchApplicationsByCompany = async (
       job_id,
       talent_id,
       status,
-      notes,
       created_at,
       jobs:job_id!inner (
         id,
@@ -298,7 +295,7 @@ export const updateApplicationStatus = async (
     .from('applications')
     .update(payload)
     .eq('id', applicationId)
-    .select('id, job_id, talent_id, status, notes, created_at')
+    .select('id, job_id, talent_id, status, created_at')
     .single();
 
   if (error) {

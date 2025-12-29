@@ -1,6 +1,19 @@
 -- ============================================
--- FIX: Agregar campo updated_at a applications
+-- FIX: Agregar campos faltantes a applications
 -- ============================================
+
+-- Agregar columna notes si no existe
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'applications'
+    AND column_name = 'notes'
+  ) THEN
+    ALTER TABLE applications
+    ADD COLUMN notes TEXT;
+  END IF;
+END $$;
 
 -- Agregar columna updated_at si no existe
 DO $$
@@ -31,8 +44,9 @@ CREATE TRIGGER applications_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_applications_updated_at();
 
--- Verificar que se agregó correctamente
+-- Verificar que se agregaron correctamente
 SELECT column_name, data_type, column_default
 FROM information_schema.columns
 WHERE table_name = 'applications'
-AND column_name = 'updated_at';
+AND column_name IN ('notes', 'updated_at')
+ORDER BY column_name;
