@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Footer from './components/Footer';
 import Navbar from './components/Navbar';
+import { LoadingOverlay } from './components/LoadingOverlay';
 import { ProtectedCompanyRoute, ProtectedTalentRoute } from './components/ProtectedRoute';
 import { useCurrentProfile } from './context/AuthContext';
 
@@ -66,6 +67,10 @@ const App = () => {
   return (
     <div className="min-h-screen bg-background text-text">
       <Navbar />
+
+      {/* Spinner global durante loading (OAuth, fetch profile, etc) */}
+      <LoadingOverlay isLoading={loading} />
+
       <main className="pt-24">
         <Suspense fallback={<PageLoader />}>
           <Routes>
