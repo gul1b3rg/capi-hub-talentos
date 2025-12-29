@@ -6,6 +6,8 @@ const BUCKET = 'company-logos';
 const RETRY_LIMIT = 2;
 const CV_BUCKET = 'cvs';
 const MAX_CV_SIZE = 3 * 1024 * 1024; // 3MB
+const AVATAR_BUCKET = 'talent-avatars';
+const MAX_AVATAR_SIZE = 5 * 1024 * 1024; // 5MB
 
 export type UploadProgressCallback = (progress: number) => void;
 
@@ -207,4 +209,106 @@ export const uploadCvFile = async (file: File, userId: string, onProgress?: Uplo
   // eslint-disable-next-line no-console
   console.log('[storageService] CV uploaded', { url: publicUrl });
   return publicUrl;
+};
+
+/**
+ * Sube un avatar comprimido desde un Blob
+ * @param blob - Blob de la imagen
+ * @param userId - ID del usuario
+ * @param attempt - Intento actual (para reintentos)
+ * @returns URL pública del avatar
+ */
+const uploadAvatarBlob = async (blob: Blob, userId: string, attempt = 0): Promise<string> => {
+  // eslint-disable-next-line no-console
+  console.log('[storageService] Compressing avatar for', userId, { size: blob.size, type: blob.type });
+  const compressed = await resizeImage(blob);
+  // eslint-disable-next-line no-console
+  console.log('[storageService] Uploading avatar', { userId, compressedSize: compressed.size });
+
+  const extension = 'webp';
+  const filePath = `avatars/${userId}-${Date.now()}.${extension}`;
+
+  const uploadPromise = supabase.storage.from(AVATAR_BUCKET).upload(filePath, compressed, {
+    contentType: 'image/webp',
+    upsert: true,
+  });
+
+  const { error } = await withTimeout(
+    uploadPromise,
+    'La subida del avatar tardó demasiado. Intenta nuevamente.',
+  );
+
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error('[storageService] Error uploading avatar', error.message);
+    if (attempt < RETRY_LIMIT) {
+      // eslint-disable-next-line no-console
+      console.warn('[storageService] Retrying avatar upload...', attempt + 1);
+      return uploadAvatarBlob(blob, userId, attempt + 1);
+    }
+    throw error;
+  }
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(filePath);
+
+  // eslint-disable-next-line no-console
+  console.log('[storageService] Avatar uploaded', publicUrl);
+  return publicUrl;
+};
+
+/**
+ * Descarga foto de LinkedIn y sube a Storage
+ * @param imageUrl - URL de la imagen de LinkedIn
+ * @param userId - ID del usuario
+ * @returns URL pública del avatar en Supabase Storage
+ */
+export const uploadAvatarFromLinkedIn = async (imageUrl: string, userId: string): Promise<string> => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+
+  let response: Response;
+  try {
+    response = await fetch(imageUrl, { signal: controller.signal });
+  } catch (error) {
+    clearTimeout(timeout);
+    throw new Error(
+      error instanceof DOMException && error.name === 'AbortError'
+        ? 'La descarga del avatar tardó demasiado. Intenta con otra imagen.'
+        : 'No pudimos descargar el avatar desde LinkedIn.',
+    );
+  }
+
+  clearTimeout(timeout);
+
+  if (!response.ok) {
+    throw new Error('No pudimos descargar el avatar desde LinkedIn.');
+  }
+
+  const blob = await response.blob();
+
+  if (blob.size > MAX_AVATAR_SIZE) {
+    throw new Error('El avatar de LinkedIn es demasiado grande (máximo 5MB).');
+  }
+
+  return uploadAvatarBlob(blob, userId);
+};
+
+/**
+ * Sube foto manual desde input file
+ * @param file - Archivo de imagen
+ * @param userId - ID del usuario
+ * @returns URL pública del avatar
+ */
+export const uploadAvatarFromFile = async (file: File, userId: string): Promise<string> => {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('El archivo debe ser una imagen (JPG, PNG, WebP).');
+  }
+
+  if (file.size > MAX_AVATAR_SIZE) {
+    throw new Error('La imagen es demasiado grande (máximo 5MB).');
+  }
+
+  return uploadAvatarBlob(file, userId);
 };

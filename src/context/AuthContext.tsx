@@ -9,6 +9,7 @@ import {
 } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
+import { handleLinkedInCallback } from '../lib/linkedInAuthService';
 
 export type ProfileRole = 'talento' | 'empresa';
 
@@ -24,6 +25,8 @@ export interface Profile {
   linkedin_url?: string | null;
   cv_url?: string | null;
   is_public_profile?: boolean | null;
+  avatar_url?: string | null;
+  linkedin_id?: string | null;
   created_at: string;
 }
 
@@ -91,7 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     writeCachedProfile(value);
   };
 
-  const fetchProfile = async (userId: string): Promise<Profile | null> => {
+  const fetchProfile = async (userId: string, user?: User): Promise<Profile | null> => {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -111,7 +114,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return null;
     }
 
-    return data as Profile;
+    const profile = data as Profile;
+
+    // Procesar callback de LinkedIn si es perfil nuevo o sin linkedin_id
+    if (user) {
+      const isNewProfile = !profile.full_name && !profile.headline;
+      await handleLinkedInCallback(userId, user, isNewProfile);
+
+      // Refetch profile si fue enriquecido
+      if (isNewProfile) {
+        const { data: updatedData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle();
+
+        return updatedData as Profile;
+      }
+    }
+
+    return profile;
   };
 
   const refreshProfile = useCallback(async (userId?: string) => {
@@ -151,7 +173,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (session?.user) {
           try {
-            const fetchedProfile = await fetchProfile(session.user.id);
+            const fetchedProfile = await fetchProfile(session.user.id, session.user);
             if (isMounted) {
               applyProfile(fetchedProfile);
             }
@@ -199,7 +221,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (nextSession?.user) {
           setLoading(true);
           try {
-            const fetchedProfile = await fetchProfile(nextSession.user.id);
+            const fetchedProfile = await fetchProfile(nextSession.user.id, nextSession.user);
             applyProfile(fetchedProfile);
           } catch {
             applyProfile(null);

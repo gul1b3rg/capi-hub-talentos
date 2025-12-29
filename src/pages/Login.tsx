@@ -2,12 +2,14 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
+import LinkedInButton from '../components/LinkedInButton';
 import { supabase } from '../lib/supabaseClient';
 
 const Login = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
+  const [linkedInError, setLinkedInError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -112,6 +114,20 @@ const Login = () => {
           {loading ? 'Ingresando...' : 'Ingresar'}
         </button>
       </form>
+
+      {/* Divider */}
+      <div className="my-6 flex items-center gap-4">
+        <div className="h-px flex-1 bg-secondary/20"></div>
+        <span className="text-sm text-secondary/60">o</span>
+        <div className="h-px flex-1 bg-secondary/20"></div>
+      </div>
+
+      {/* LinkedIn Button */}
+      <LinkedInButton mode="signin" onError={setLinkedInError} className="w-full" />
+      {linkedInError && (
+        <p className="mt-3 rounded-2xl bg-red-50 px-4 py-2 text-sm text-red-600">{linkedInError}</p>
+      )}
+
       <p className="mt-4 text-center text-sm text-secondary/70">
         ¿Olvidaste tu contraseña?{' '}
         <a href="mailto:talentos@capi.com" className="font-semibold text-primary hover:underline">

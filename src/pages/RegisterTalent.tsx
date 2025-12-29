@@ -1,15 +1,20 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FiArrowLeft } from 'react-icons/fi';
 import AuthLayout from '../components/AuthLayout';
+import LinkedInButton from '../components/LinkedInButton';
 import { updateProfile } from '../lib/profileService';
 import { supabase } from '../lib/supabaseClient';
 import { useCurrentProfile } from '../context/AuthContext';
+
+type RegistrationMode = 'choice' | 'email' | 'linkedin';
 
 const RegisterTalent = () => {
   const navigate = useNavigate();
   const { refreshProfile } = useCurrentProfile();
 
+  const [mode, setMode] = useState<RegistrationMode>('choice');
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -18,6 +23,7 @@ const RegisterTalent = () => {
     headline: '',
   });
   const [error, setError] = useState<string | null>(null);
+  const [linkedInError, setLinkedInError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -80,6 +86,37 @@ const RegisterTalent = () => {
     }
   };
 
+  // Choice mode: Two-button choice
+  if (mode === 'choice') {
+    return (
+      <AuthLayout
+        title="Registro de Talento"
+        subtitle="Elige cómo quieres registrarte"
+        footerLinks={[
+          { label: '¿Ya tenés cuenta?', to: '/login' },
+          { label: '¿Buscás registrar tu empresa?', to: '/register-company' },
+        ]}
+      >
+        <div className="space-y-4">
+          <LinkedInButton mode="register" onError={setLinkedInError} className="w-full" />
+
+          <button
+            type="button"
+            onClick={() => setMode('email')}
+            className="w-full rounded-2xl border-2 border-secondary/30 bg-white px-6 py-3 font-semibold text-secondary transition hover:border-secondary hover:bg-secondary/5"
+          >
+            Registrarse con correo electrónico
+          </button>
+
+          {linkedInError && (
+            <p className="rounded-2xl bg-red-50 px-4 py-2 text-sm text-red-600">{linkedInError}</p>
+          )}
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  // Email mode: Traditional form
   return (
     <AuthLayout
       title="Registro de Talento"
@@ -89,6 +126,16 @@ const RegisterTalent = () => {
         { label: '¿Buscás registrar tu empresa?', to: '/register-company' },
       ]}
     >
+      {/* Back button */}
+      <button
+        type="button"
+        onClick={() => setMode('choice')}
+        className="mb-4 flex items-center gap-2 text-sm font-medium text-secondary/70 transition hover:text-secondary"
+      >
+        <FiArrowLeft className="text-lg" />
+        Volver
+      </button>
+
       <form className="space-y-4" onSubmit={handleSubmit}>
         <label className="block text-sm font-medium text-secondary">
           Nombre y Apellido

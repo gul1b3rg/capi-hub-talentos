@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useCurrentProfile } from '../context/AuthContext';
-import { isProfileReadyForApplication, updateProfile } from '../lib/profileService';
-import { uploadCvFile } from '../lib/storageService';
+import { isProfileReadyForApplication, updateProfile, updateProfileAvatar } from '../lib/profileService';
+import { uploadCvFile, uploadAvatarFromFile } from '../lib/storageService';
+import { linkLinkedInAccount } from '../lib/linkedInAuthService';
 import { validateCvFile } from '../lib/fileValidation';
 import type { UploadState } from '../types/upload';
 import ProgressBar from '../components/ProgressBar';
@@ -22,9 +23,13 @@ const TalentProfile = () => {
     availability: '',
     linkedin_url: '',
     cv_url: '',
+    avatar_url: '',
     is_public_profile: true,
   });
   const [cvFile, setCvFile] = useState<File | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadState, setUploadState] = useState<UploadState>({
     status: 'idle',
     progress: 0,
@@ -47,6 +52,7 @@ const TalentProfile = () => {
         availability: (profile as any).availability ?? '',
         linkedin_url: (profile as any).linkedin_url ?? '',
         cv_url: (profile as any).cv_url ?? '',
+        avatar_url: (profile as any).avatar_url ?? '',
         is_public_profile: Boolean((profile as any).is_public_profile ?? true),
       });
     }
@@ -95,6 +101,67 @@ const TalentProfile = () => {
       fileName: file.name,
       fileSize: file.size,
     });
+  };
+
+  const handleAvatarFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('El archivo debe ser una imagen (JPG, PNG, WebP).');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('La imagen es demasiado grande (máximo 5MB).');
+      return;
+    }
+
+    setAvatarFile(file);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAvatarPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAvatarUpload = async () => {
+    if (!avatarFile || !user?.id) return;
+
+    setUploadingAvatar(true);
+    setError(null);
+
+    try {
+      const avatarUrl = await uploadAvatarFromFile(avatarFile, user.id);
+      await updateProfileAvatar(user.id, avatarUrl);
+      await refreshProfile(user.id);
+      setForm((prev) => ({ ...prev, avatar_url: avatarUrl }));
+      setSuccess('Foto de perfil actualizada correctamente.');
+      setAvatarFile(null);
+      setAvatarPreview(null);
+
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (uploadError) {
+      const errorMessage =
+        uploadError instanceof Error ? uploadError.message : 'No pudimos subir la foto.';
+      setError(errorMessage);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleLinkLinkedIn = async () => {
+    setError(null);
+    try {
+      await linkLinkedInAccount();
+      // El redirect a LinkedIn sucede automáticamente
+    } catch (linkError) {
+      const errorMessage =
+        linkError instanceof Error ? linkError.message : 'No pudimos vincular LinkedIn.';
+      setError(errorMessage);
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -230,6 +297,25 @@ const TalentProfile = () => {
         {/* Vista de solo lectura */}
         {!isEditing && (
           <div className="mt-8 space-y-6">
+            {/* Avatar display */}
+            <div className="flex items-center gap-4">
+              {form.avatar_url ? (
+                <img
+                  src={form.avatar_url}
+                  alt="Foto de perfil"
+                  className="h-24 w-24 rounded-full border-2 border-secondary/20 object-cover"
+                />
+              ) : (
+                <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-secondary/20 bg-gradient-to-br from-primary/20 to-secondary/20 text-2xl font-bold text-secondary">
+                  {form.full_name ? form.full_name.charAt(0).toUpperCase() : '?'}
+                </div>
+              )}
+              <div>
+                <h2 className="text-xl font-semibold text-secondary">{form.full_name || 'Tu nombre'}</h2>
+                <p className="text-secondary/70">{form.headline || 'Tu título profesional'}</p>
+              </div>
+            </div>
+
             <div className="grid gap-6 md:grid-cols-2">
               <div>
                 <p className="text-sm font-semibold text-secondary">Ubicación</p>
@@ -380,6 +466,62 @@ const TalentProfile = () => {
             </label>
           </div>
 
+          {/* Avatar Upload Section */}
+          <div className="grid gap-4 rounded-2xl border border-secondary/10 bg-secondary/5 px-4 py-4">
+            <div>
+              <p className="text-sm font-semibold text-secondary">Foto de perfil</p>
+              <p className="mt-1 text-xs text-secondary/60">
+                Sube una imagen (JPG, PNG, WebP) de máximo 5MB
+              </p>
+
+              {/* Avatar preview */}
+              <div className="mt-3 flex items-center gap-4">
+                {avatarPreview || form.avatar_url ? (
+                  <img
+                    src={avatarPreview || form.avatar_url}
+                    alt="Vista previa"
+                    className="h-20 w-20 rounded-full border-2 border-secondary/20 object-cover"
+                  />
+                ) : (
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-secondary/20 bg-gradient-to-br from-primary/20 to-secondary/20 text-xl font-bold text-secondary">
+                    {form.full_name ? form.full_name.charAt(0).toUpperCase() : '?'}
+                  </div>
+                )}
+
+                <div className="flex-1 space-y-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="block w-full text-sm text-secondary file:mr-4 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20"
+                    onChange={handleAvatarFileChange}
+                    disabled={uploadingAvatar}
+                  />
+
+                  {avatarFile && (
+                    <button
+                      type="button"
+                      onClick={handleAvatarUpload}
+                      disabled={uploadingAvatar}
+                      className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {uploadingAvatar ? 'Subiendo...' : 'Subir foto'}
+                    </button>
+                  )}
+
+                  {!form.avatar_url && !avatarFile && (
+                    <button
+                      type="button"
+                      onClick={handleLinkLinkedIn}
+                      className="rounded-full border border-[#0A66C2] bg-white px-4 py-1.5 text-sm font-semibold text-[#0A66C2] transition hover:bg-[#0A66C2]/5"
+                    >
+                      Importar desde LinkedIn
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="grid gap-4 rounded-2xl border border-secondary/10 bg-secondary/5 px-4 py-4">
             <div>
               <p className="text-sm font-semibold text-secondary">Subir CV (PDF máx. 3MB)</p>
@@ -443,6 +585,8 @@ const TalentProfile = () => {
               onClick={() => {
                 setIsEditing(false);
                 setError(null);
+                setAvatarFile(null);
+                setAvatarPreview(null);
                 // Restaurar valores del profile
                 if (profile) {
                   setForm({
@@ -454,6 +598,7 @@ const TalentProfile = () => {
                     availability: (profile as any).availability ?? '',
                     linkedin_url: (profile as any).linkedin_url ?? '',
                     cv_url: (profile as any).cv_url ?? '',
+                    avatar_url: (profile as any).avatar_url ?? '',
                     is_public_profile: Boolean((profile as any).is_public_profile ?? true),
                   });
                 }
