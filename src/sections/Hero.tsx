@@ -37,6 +37,7 @@ const Hero = () => (
             Publicar vacancia
           </Link>
         </div>
+        {/* TODO: Reactivar con datos reales en vivo desde Supabase
         <div className="grid gap-4 rounded-3xl border border-white/15 bg-white/10 p-6 text-sm backdrop-blur">
           <div className="flex flex-wrap items-center gap-4 text-white/80">
             <div>
@@ -56,6 +57,7 @@ const Hero = () => (
             Matching inteligente impulsado por datos del ecosistema asegurador paraguayo y Supabase.
           </p>
         </div>
+        */}
       </div>
 
       <div className="flex flex-col gap-4 lg:items-end">
