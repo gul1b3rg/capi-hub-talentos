@@ -8,14 +8,26 @@ import { enrichProfileFromLinkedIn, linkLinkedInToProfile, type LinkedInProfileD
  * @returns Datos del perfil de LinkedIn o null si no está disponible
  */
 export const extractLinkedInData = (user: User | null): LinkedInProfileData | null => {
-  if (!user?.user_metadata) return null;
+  if (!user) return null;
+
+  // eslint-disable-next-line no-console
+  console.log('[linkedInAuthService] user.user_metadata:', user.user_metadata);
+
+  if (!user.user_metadata) {
+    // eslint-disable-next-line no-console
+    console.warn('[linkedInAuthService] No user_metadata found');
+    return null;
+  }
 
   // Los datos de LinkedIn OIDC vienen en user_metadata
   const { email, name, picture, sub, headline } = user.user_metadata;
 
+  // eslint-disable-next-line no-console
+  console.log('[linkedInAuthService] Extracted data:', { email, name, picture: !!picture, sub, headline });
+
   if (!email || !name || !sub) {
     // eslint-disable-next-line no-console
-    console.warn('[linkedInAuthService] Missing required LinkedIn data', user.user_metadata);
+    console.warn('[linkedInAuthService] Missing required LinkedIn data', { email: !!email, name: !!name, sub: !!sub });
     return null;
   }
 

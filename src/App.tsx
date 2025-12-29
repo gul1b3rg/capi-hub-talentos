@@ -1,8 +1,9 @@
-import { lazy, Suspense } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Footer from './components/Footer';
 import Navbar from './components/Navbar';
 import { ProtectedCompanyRoute, ProtectedTalentRoute } from './components/ProtectedRoute';
+import { useCurrentProfile } from './context/AuthContext';
 
 // Páginas críticas (eager loading) - Landing y autenticación
 import Inicio from './pages/Inicio';
@@ -39,19 +40,42 @@ const PageLoader = () => (
   </div>
 );
 
-const App = () => (
-  <div className="min-h-screen bg-background text-text">
-    <Navbar />
-    <main className="pt-24">
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/" element={<Navigate to="/inicio" replace />} />
-          {/* Rutas públicas principales (eager) */}
-          <Route path="/inicio" element={<Inicio />} />
-          <Route path="/vacancias" element={<Vacancias />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register-talent" element={<RegisterTalent />} />
-          <Route path="/register-company" element={<RegisterCompany />} />
+const App = () => {
+  const { user, profile, role, loading } = useCurrentProfile();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Redirect incomplete LinkedIn OAuth profiles to profile editor
+  useEffect(() => {
+    // Skip if still loading or no user
+    if (loading || !user) return;
+
+    // Only redirect talentos with incomplete profiles
+    if (role === 'talento' && profile) {
+      const isIncomplete = !profile.headline || !profile.experience_years || !profile.area;
+      const isOnProfilePage = location.pathname === '/mi-perfil';
+
+      // If profile is incomplete and not already on profile page, redirect
+      if (isIncomplete && !isOnProfilePage) {
+        console.log('[App] Redirecting incomplete LinkedIn profile to editor');
+        navigate('/mi-perfil', { replace: true });
+      }
+    }
+  }, [user, profile, role, loading, location.pathname, navigate]);
+
+  return (
+    <div className="min-h-screen bg-background text-text">
+      <Navbar />
+      <main className="pt-24">
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/inicio" replace />} />
+            {/* Rutas públicas principales (eager) */}
+            <Route path="/inicio" element={<Inicio />} />
+            <Route path="/vacancias" element={<Vacancias />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register-talent" element={<RegisterTalent />} />
+            <Route path="/register-company" element={<RegisterCompany />} />
 
           {/* Rutas públicas secundarias (lazy) */}
           <Route path="/empresas" element={<Empresas />} />
@@ -82,6 +106,7 @@ const App = () => (
     </main>
     <Footer />
   </div>
-);
+  );
+};
 
 export default App;

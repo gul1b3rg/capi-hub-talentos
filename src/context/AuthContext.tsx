@@ -10,6 +10,7 @@ import {
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
 import { handleLinkedInCallback, extractLinkedInData } from '../lib/linkedInAuthService';
+import { enrichProfileFromLinkedIn } from '../lib/profileService';
 
 export type ProfileRole = 'talento' | 'empresa';
 
@@ -95,32 +96,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const fetchProfile = async (userId: string, user?: User): Promise<Profile | null> => {
+    // eslint-disable-next-line no-console
+    console.log('[AuthContext] fetchProfile called', { userId, hasUser: !!user });
+
+    // CRITICAL FIX: Delay to allow auth.uid() to propagate after setSession()
+    // RLS policies use auth.uid() which may not be immediately available in PostgreSQL context
+    // Increased to 1500ms as shorter delays were insufficient for RLS context propagation
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // eslint-disable-next-line no-console
+    console.log('[AuthContext] Starting profile query after RLS delay');
+
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .maybeSingle();
 
+    // eslint-disable-next-line no-console
+    console.log('[AuthContext] Profile query result', { hasData: !!data, hasError: !!error, errorCode: error?.code });
+
     if (error) {
       // eslint-disable-next-line no-console
-      console.error('Error fetching profile', error.message);
+      console.error('[AuthContext] Error fetching profile', error.message, error);
       throw error;
     }
 
     // Si no hay perfil (null), crearlo si es usuario OAuth de LinkedIn
     if (!data) {
       // eslint-disable-next-line no-console
-      console.warn(`Profile not found for user ${userId}`);
+      console.warn(`[AuthContext] Profile not found for user ${userId}`);
 
       // Si el usuario viene de OAuth LinkedIn, crear perfil automáticamente
       if (user) {
         const linkedInData = extractLinkedInData(user);
         if (linkedInData) {
           // eslint-disable-next-line no-console
-          console.log('[AuthContext] Creating profile for LinkedIn OAuth user');
+          console.log('[AuthContext] LinkedIn data extracted, creating profile', { name: linkedInData.name, sub: linkedInData.sub });
 
           try {
-            const { error: createError } = await supabase
+            const { data: newProfile, error: createError } = await supabase
               .from('profiles')
               .insert({
                 id: userId,
@@ -139,24 +154,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
 
             // eslint-disable-next-line no-console
-            console.log('[AuthContext] Profile created, now enriching with LinkedIn data');
+            console.log('[AuthContext] Profile created successfully', { profileId: newProfile.id, role: newProfile.role });
+
+            // eslint-disable-next-line no-console
+            console.log('[AuthContext] Now enriching with LinkedIn data (avatar, etc.)');
 
             // Enriquecer con avatar y otros datos
             await handleLinkedInCallback(userId, user, true);
 
+            // eslint-disable-next-line no-console
+            console.log('[AuthContext] LinkedIn callback processed, refetching enriched profile');
+
             // Refetch para obtener el perfil completo con avatar
-            const { data: enrichedProfile } = await supabase
+            const { data: enrichedProfile, error: refetchError } = await supabase
               .from('profiles')
               .select('*')
               .eq('id', userId)
               .single();
 
+            if (refetchError) {
+              // eslint-disable-next-line no-console
+              console.error('[AuthContext] Error refetching enriched profile', refetchError);
+              return newProfile as Profile;
+            }
+
+            // eslint-disable-next-line no-console
+            console.log('[AuthContext] Final enriched profile loaded', { hasAvatar: !!enrichedProfile?.avatar_url });
+
             return enrichedProfile as Profile;
           } catch (err) {
             // eslint-disable-next-line no-console
-            console.error('[AuthContext] Failed to create LinkedIn profile', err);
+            console.error('[AuthContext] Failed to create LinkedIn profile - Exception:', err);
             return null;
           }
+        } else {
+          // eslint-disable-next-line no-console
+          console.warn('[AuthContext] No LinkedIn data found in user metadata');
         }
       }
 
@@ -165,8 +198,60 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const profile = data as Profile;
 
+    // CRITICAL FIX: Enriquecer perfiles vacíos de intentos previos de OAuth
+    // Si el perfil existe pero está vacío (full_name === '' o !linkedin_id), enriquecerlo
+    const isEmptyProfile = !profile.full_name || (!profile.full_name.trim() && !profile.linkedin_id);
+
+    if (isEmptyProfile && user) {
+      const linkedInData = extractLinkedInData(user);
+      if (linkedInData) {
+        // eslint-disable-next-line no-console
+        console.log('[AuthContext] Detected empty profile from previous OAuth attempt, enriching with LinkedIn data', {
+          userId,
+          full_name: profile.full_name,
+          linkedin_id: profile.linkedin_id
+        });
+
+        try {
+          await enrichProfileFromLinkedIn(userId, linkedInData);
+
+          // eslint-disable-next-line no-console
+          console.log('[AuthContext] Empty profile enriched successfully, refetching');
+
+          // Refetch profile actualizado
+          const { data: enrichedProfile, error: refetchError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+          if (refetchError) {
+            // eslint-disable-next-line no-console
+            console.error('[AuthContext] Error refetching enriched profile', refetchError);
+            return profile;
+          }
+
+          // eslint-disable-next-line no-console
+          console.log('[AuthContext] Enriched profile loaded', {
+            full_name: enrichedProfile?.full_name,
+            linkedin_id: enrichedProfile?.linkedin_id,
+            avatar_url: !!enrichedProfile?.avatar_url
+          });
+
+          return enrichedProfile as Profile;
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error('[AuthContext] Failed to enrich empty profile', error);
+          return profile;
+        }
+      } else {
+        // eslint-disable-next-line no-console
+        console.warn('[AuthContext] Empty profile detected but no LinkedIn data available');
+      }
+    }
+
     // Procesar callback de LinkedIn si es perfil nuevo o sin linkedin_id
-    if (user) {
+    if (user && !isEmptyProfile) {
       const isNewProfile = !profile.full_name && !profile.headline;
       await handleLinkedInCallback(userId, user, isNewProfile);
 
@@ -218,11 +303,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (preservedHash) {
           // eslint-disable-next-line no-console
           console.log('[AuthContext] Restoring preserved OAuth hash from sessionStorage');
-          window.location.hash = preservedHash;
           sessionStorage.removeItem('supabase.auth.hash');
 
-          // Give Supabase a moment to process the restored hash
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          // Parse hash parameters manually since Supabase won't auto-detect restored hash
+          const hashParams = new URLSearchParams(preservedHash.substring(1));
+          const accessToken = hashParams.get('access_token');
+          const refreshToken = hashParams.get('refresh_token');
+
+          if (accessToken && refreshToken) {
+            // eslint-disable-next-line no-console
+            console.log('[AuthContext] Manually setting session from OAuth tokens');
+            try {
+              const { data: sessionData, error: setSessionError } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken,
+              });
+
+              if (setSessionError) {
+                // eslint-disable-next-line no-console
+                console.error('[AuthContext] Error setting session from OAuth tokens', setSessionError);
+              } else {
+                // eslint-disable-next-line no-console
+                console.log('[AuthContext] Session set successfully from OAuth', { userId: sessionData.session?.user?.id });
+
+                // CRITICAL: Force token refresh to ensure RLS context is properly set
+                // eslint-disable-next-line no-console
+                console.log('[AuthContext] Forcing token refresh to propagate RLS context');
+                await supabase.auth.refreshSession();
+                // eslint-disable-next-line no-console
+                console.log('[AuthContext] Token refresh completed');
+              }
+            } catch (error) {
+              // eslint-disable-next-line no-console
+              console.error('[AuthContext] Failed to set session from OAuth', error);
+            }
+          }
         }
 
         const {
@@ -291,7 +406,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(nextSession);
         currentUserId = nextUserId;
 
+        // eslint-disable-next-line no-console
+        console.log('[AuthContext] About to check if nextSession.user exists', {
+          hasNextSession: !!nextSession,
+          hasUser: !!nextSession?.user,
+          userId: nextSession?.user?.id
+        });
+
         if (nextSession?.user) {
+          // eslint-disable-next-line no-console
+          console.log('[AuthContext] nextSession.user exists, setting loading and calling fetchProfile');
           setLoading(true);
           try {
             const fetchedProfile = await fetchProfile(nextSession.user.id, nextSession.user);
@@ -306,6 +430,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setLoading(false);
           }
         } else {
+          // eslint-disable-next-line no-console
+          console.warn('[AuthContext] nextSession.user is null/undefined, cannot fetch profile');
           applyProfile(null);
           setLoading(false);
         }
