@@ -19,6 +19,16 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, role, logout } = useCurrentProfile();
 
+  // Filtrar navLinks basado en autenticación
+  const visibleNavLinks = useMemo(() => {
+    if (!user) {
+      // Usuario no autenticado: solo mostrar links públicos
+      return navLinks.filter((link) => !['Publicar', 'Dashboard'].includes(link.label));
+    }
+    // Usuario autenticado: mostrar todos los links
+    return navLinks;
+  }, [user]);
+
   const actionLinks: ActionLink[] = useMemo(() => {
     if (!user || !role) {
       return [
@@ -28,8 +38,8 @@ const Navbar = () => {
     }
 
     if (role === 'empresa') {
+      // Empresa: solo botón de Publicar (Dashboard ya está en navLinks)
       return [
-        { label: 'Dashboard', path: '/dashboard', variant: 'ghost' },
         { label: 'Publicar vacancia', path: '/publicar', variant: 'primary' },
       ];
     }
@@ -79,7 +89,7 @@ const Navbar = () => {
         </Link>
 
         <nav className="hidden items-center gap-1 rounded-full border border-white/40 bg-white/60 px-1.5 py-1 md:flex">
-          {navLinks.map((item) => (
+          {visibleNavLinks.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
@@ -117,7 +127,7 @@ const Navbar = () => {
         {isOpen && (
           <div className="absolute inset-x-4 top-20 rounded-3xl border border-white/40 bg-white p-4 shadow-2xl md:hidden">
             <div className="flex flex-col gap-2">
-              {navLinks.map((item) => (
+              {visibleNavLinks.map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}

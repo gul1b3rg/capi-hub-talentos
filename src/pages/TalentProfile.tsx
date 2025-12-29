@@ -12,6 +12,7 @@ const areaOptions = ['Siniestros', 'Comercial', 'TI', 'Reaseguro', 'Innovación'
 
 const TalentProfile = () => {
   const { user, profile, refreshProfile, loading } = useCurrentProfile();
+  const [isEditing, setIsEditing] = useState(false); // Modo vista por defecto
   const [form, setForm] = useState({
     full_name: '',
     headline: '',
@@ -144,6 +145,7 @@ const TalentProfile = () => {
       await refreshProfile(user.id);
       setSuccess('Perfil actualizado correctamente.');
       setCvFile(null);
+      setIsEditing(false); // Volver a modo vista después de guardar
 
       // Reset upload state después de 3 segundos
       setTimeout(() => {
@@ -154,6 +156,7 @@ const TalentProfile = () => {
           fileName: null,
           fileSize: null,
         });
+        setSuccess(null); // Limpiar mensaje de éxito
       }, 3000);
     } catch (submitError) {
       const errorMessage =
@@ -197,18 +200,92 @@ const TalentProfile = () => {
   return (
     <section className="mx-auto max-w-4xl px-4 py-16">
       <div className="rounded-3xl border border-white/40 bg-white/90 p-8 shadow-2xl backdrop-blur">
-        <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">Mi Perfil</p>
-        <h1 className="mt-2 text-3xl font-semibold text-secondary">Actualiza tu perfil de talento</h1>
-        <p className="mt-1 text-secondary/70">Este perfil se usará para tus postulaciones.</p>
-        <div className="mt-2 text-xs font-semibold uppercase tracking-[0.2em]">
-          {ready ? (
-            <span className="rounded-full bg-green-100 px-3 py-1 text-green-700">Listo para postular</span>
-          ) : (
-            <span className="rounded-full bg-yellow-100 px-3 py-1 text-yellow-700">Faltan datos clave</span>
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">Mi Perfil</p>
+            <h1 className="mt-2 text-3xl font-semibold text-secondary">
+              {isEditing ? 'Editar perfil' : form.full_name || 'Tu Perfil'}
+            </h1>
+            <p className="mt-1 text-secondary/70">
+              {isEditing ? 'Actualiza tu información para postulaciones' : form.headline || 'Especialista en seguros'}
+            </p>
+            <div className="mt-2 text-xs font-semibold uppercase tracking-[0.2em]">
+              {ready ? (
+                <span className="rounded-full bg-green-100 px-3 py-1 text-green-700">Listo para postular</span>
+              ) : (
+                <span className="rounded-full bg-yellow-100 px-3 py-1 text-yellow-700">Faltan datos clave</span>
+              )}
+            </div>
+          </div>
+          {!isEditing && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="rounded-full border-2 border-secondary/20 bg-white px-6 py-2 font-semibold text-secondary shadow-sm transition hover:border-secondary/40 hover:bg-secondary/5"
+            >
+              Editar perfil
+            </button>
           )}
         </div>
 
-        <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+        {/* Vista de solo lectura */}
+        {!isEditing && (
+          <div className="mt-8 space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div>
+                <p className="text-sm font-semibold text-secondary">Ubicación</p>
+                <p className="mt-1 text-secondary/70">{form.location || 'No especificada'}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-secondary">Experiencia</p>
+                <p className="mt-1 text-secondary/70">{form.experience_years || 'No especificada'}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-secondary">Área</p>
+                <p className="mt-1 text-secondary/70">{form.area || 'No especificada'}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-secondary">Disponibilidad</p>
+                <p className="mt-1 text-secondary/70">{form.availability || 'No especificada'}</p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              {form.cv_url && (
+                <a
+                  href={form.cv_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full bg-primary/10 px-5 py-2 text-sm font-semibold text-primary hover:bg-primary/20"
+                >
+                  Ver CV
+                </a>
+              )}
+              {form.linkedin_url && (
+                <a
+                  href={form.linkedin_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full bg-secondary/10 px-5 py-2 text-sm font-semibold text-secondary hover:bg-secondary/20"
+                >
+                  Ver LinkedIn
+                </a>
+              )}
+            </div>
+
+            {!ready && (
+              <div className="rounded-2xl border border-yellow-200 bg-yellow-50 p-4">
+                <p className="text-sm font-semibold text-yellow-800">Completa tu perfil</p>
+                <p className="mt-1 text-sm text-yellow-700">
+                  Para poder postular a vacancias, necesitas completar todos los campos obligatorios y subir tu CV.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Formulario de edición */}
+        {isEditing && (
+          <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
           <div className="grid gap-5 md:grid-cols-2">
             <label className="text-sm font-medium text-secondary">
               Nombre completo
@@ -360,14 +437,41 @@ const TalentProfile = () => {
           {error && <p className="rounded-2xl bg-red-50 px-4 py-2 text-sm text-red-600">{error}</p>}
           {success && <p className="rounded-2xl bg-green-50 px-4 py-2 text-sm text-green-700">{success}</p>}
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full rounded-2xl bg-secondary px-6 py-3 font-semibold text-white transition hover:bg-secondary/90 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {saving ? 'Guardando...' : 'Guardar cambios'}
-          </button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setIsEditing(false);
+                setError(null);
+                // Restaurar valores del profile
+                if (profile) {
+                  setForm({
+                    full_name: profile.full_name ?? '',
+                    headline: profile.headline ?? '',
+                    location: profile.location ?? '',
+                    experience_years: (profile as any).experience_years ?? '',
+                    area: (profile as any).area ?? '',
+                    availability: (profile as any).availability ?? '',
+                    linkedin_url: (profile as any).linkedin_url ?? '',
+                    cv_url: (profile as any).cv_url ?? '',
+                    is_public_profile: Boolean((profile as any).is_public_profile ?? true),
+                  });
+                }
+              }}
+              className="w-1/3 rounded-2xl border-2 border-secondary/20 px-6 py-3 font-semibold text-secondary transition hover:border-secondary/40 hover:bg-secondary/5"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="w-2/3 rounded-2xl bg-secondary px-6 py-3 font-semibold text-white transition hover:bg-secondary/90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saving ? 'Guardando...' : 'Guardar cambios'}
+            </button>
+          </div>
         </form>
+        )}
       </div>
     </section>
   );
