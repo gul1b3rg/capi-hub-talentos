@@ -58,7 +58,6 @@ const App = () => {
 
       // If profile is incomplete and not already on profile page, redirect
       if (isIncomplete && !isOnProfilePage) {
-        console.log('[App] Redirecting incomplete LinkedIn profile to editor');
         navigate('/mi-perfil', { replace: true });
       }
     }
