@@ -103,8 +103,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // This approach doesn't rely on waiting a fixed time but actively retries until success or timeout
     let data = null;
     let error = null;
-    const maxRetries = 6;
-    let retryDelay = 150; // Start with 150ms
+    const maxRetries = 3; // Reduced from 6 to 3 for faster UX
+    let retryDelay = 100; // Reduced from 150ms to 100ms
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       // eslint-disable-next-line no-console
@@ -116,9 +116,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .eq('id', userId)
         .maybeSingle();
 
-      // Add timeout to prevent infinite hanging (3 seconds per attempt)
+      // Reduced timeout from 3s to 1s per attempt for faster UX
       const timeoutPromise = new Promise<{ data: null, error: any }>((_, reject) =>
-        setTimeout(() => reject(new Error('Query timeout')), 3000)
+        setTimeout(() => reject(new Error('Query timeout')), 1000)
       );
 
       try {
@@ -144,7 +144,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (timeoutError) {
         // eslint-disable-next-line no-console
-        console.warn(`[AuthContext] Attempt ${attempt} timed out after 3s, will retry...`);
+        console.warn(`[AuthContext] Attempt ${attempt} timed out after 1s, will retry...`);
         error = timeoutError as any;
       }
 
@@ -203,7 +203,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               .single();
 
             const insertTimeout = new Promise<{ data: null, error: any }>((_, reject) =>
-              setTimeout(() => reject(new Error('INSERT timeout')), 5000)
+              setTimeout(() => reject(new Error('INSERT timeout')), 2000) // Reduced from 5s to 2s
             );
 
             const { data: newProfile, error: createError } = await Promise.race([insertPromise, insertTimeout]);
@@ -371,6 +371,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let isMounted = true;
     let currentUserId: string | null = null;
+    let isRefreshing = false; // Flag to prevent duplicate fetches during refresh
 
     const sync = async () => {
       setLoading(true);
@@ -394,6 +395,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // eslint-disable-next-line no-console
             console.log('[AuthContext] Manually setting session from OAuth tokens');
             try {
+              isRefreshing = true; // Set flag to prevent duplicate fetches
+
               const { data: sessionData, error: setSessionError } = await supabase.auth.setSession({
                 access_token: accessToken,
                 refresh_token: refreshToken,
@@ -402,6 +405,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               if (setSessionError) {
                 // eslint-disable-next-line no-console
                 console.error('[AuthContext] Error setting session from OAuth tokens', setSessionError);
+                isRefreshing = false;
               } else {
                 // eslint-disable-next-line no-console
                 console.log('[AuthContext] Session set successfully from OAuth', { userId: sessionData.session?.user?.id });
@@ -412,10 +416,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 await supabase.auth.refreshSession();
                 // eslint-disable-next-line no-console
                 console.log('[AuthContext] Token refresh completed');
+
+                isRefreshing = false; // Clear flag after refresh completes
               }
             } catch (error) {
               // eslint-disable-next-line no-console
               console.error('[AuthContext] Failed to set session from OAuth', error);
+              isRefreshing = false;
             }
           }
         }
@@ -473,6 +480,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const { data: listener } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
       if (!isMounted) return;
+
+      // Skip if we're currently refreshing session during OAuth - will be handled by sync()
+      if (isRefreshing) {
+        // eslint-disable-next-line no-console
+        console.log('[AuthContext] Skipping auth state change during OAuth refresh', { event: _event });
+        return;
+      }
 
       // eslint-disable-next-line no-console
       console.log('[AuthContext] Auth state changed', { event: _event, userId: nextSession?.user?.id });
