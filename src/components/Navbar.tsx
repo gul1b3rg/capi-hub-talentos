@@ -19,15 +19,21 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, role, logout } = useCurrentProfile();
 
-  // Filtrar navLinks basado en autenticación
+  // Filtrar navLinks basado en autenticación y rol
   const visibleNavLinks = useMemo(() => {
     if (!user) {
       // Usuario no autenticado: solo mostrar links públicos
       return navLinks.filter((link) => !['Publicar', 'Dashboard'].includes(link.label));
     }
-    // Usuario autenticado: mostrar todos los links
+
+    if (role === 'talento') {
+      // Talentos: no mostrar Publicar ni Dashboard
+      return navLinks.filter((link) => !['Publicar', 'Dashboard'].includes(link.label));
+    }
+
+    // Empresas: mostrar todos los links
     return navLinks;
-  }, [user]);
+  }, [user, role]);
 
   const actionLinks: ActionLink[] = useMemo(() => {
     if (!user || !role) {
