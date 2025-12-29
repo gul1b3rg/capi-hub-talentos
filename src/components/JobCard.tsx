@@ -38,6 +38,14 @@ const JobCard = memo(({ job }: JobCardProps) => (
         Publicada el {job.published_at ? new Date(job.published_at).toLocaleDateString() : 'Sin fecha'}
       </div>
     </div>
+
+    {/* Vista previa de la descripción */}
+    {job.description && (
+      <p className="mt-4 line-clamp-2 text-sm text-secondary/70">
+        {job.description}
+      </p>
+    )}
+
     <div className="mt-4 flex flex-wrap gap-2">
       {job.tags.map((tag) => (
         <span key={tag} className="rounded-full bg-background px-3 py-1 text-sm text-secondary">
