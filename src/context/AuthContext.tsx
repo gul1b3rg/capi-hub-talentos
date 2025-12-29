@@ -206,33 +206,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let isMounted = true;
     let currentUserId: string | null = null;
-    let syncCompleted = false; // Track si sync() ya terminó
 
     const sync = async () => {
       setLoading(true);
       try {
+        // eslint-disable-next-line no-console
+        console.log('[AuthContext] Starting initial session sync');
+
+        // Restore OAuth hash if it was preserved by main.tsx before BrowserRouter cleared it
+        const preservedHash = sessionStorage.getItem('supabase.auth.hash');
+        if (preservedHash) {
+          // eslint-disable-next-line no-console
+          console.log('[AuthContext] Restoring preserved OAuth hash from sessionStorage');
+          window.location.hash = preservedHash;
+          sessionStorage.removeItem('supabase.auth.hash');
+
+          // Give Supabase a moment to process the restored hash
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+
         const {
           data: { session },
         } = await supabase.auth.getSession();
 
         if (!isMounted) return;
 
+        // eslint-disable-next-line no-console
+        console.log('[AuthContext] Session obtained', { hasSession: !!session, userId: session?.user?.id });
+
         setSession(session);
         currentUserId = session?.user?.id ?? null;
 
         if (session?.user) {
           try {
+            // eslint-disable-next-line no-console
+            console.log('[AuthContext] Fetching profile for user', session.user.id);
             const fetchedProfile = await fetchProfile(session.user.id, session.user);
             if (isMounted) {
               applyProfile(fetchedProfile);
+              // eslint-disable-next-line no-console
+              console.log('[AuthContext] Profile applied', { hasProfile: !!fetchedProfile, role: fetchedProfile?.role });
             }
           } catch (profileError) {
             if (isMounted) {
               applyProfile(null);
               // eslint-disable-next-line no-console
-              console.warn('Failed to load profile during initial sync', profileError);
+              console.error('[AuthContext] Failed to load profile during initial sync', profileError);
             }
           }
+        } else {
+          // eslint-disable-next-line no-console
+          console.log('[AuthContext] No session found, user not authenticated');
         }
       } catch (sessionError) {
         if (isMounted) {
@@ -240,11 +264,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           applyProfile(null);
         }
         // eslint-disable-next-line no-console
-        console.error('Error during session sync', sessionError);
+        console.error('[AuthContext] Error during session sync', sessionError);
       } finally {
         if (isMounted) {
           setLoading(false);
-          syncCompleted = true;
+          // eslint-disable-next-line no-console
+          console.log('[AuthContext] Initial sync completed');
         }
       }
     };
@@ -254,16 +279,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: listener } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
       if (!isMounted) return;
 
-      const nextUserId = nextSession?.user?.id ?? null;
+      // eslint-disable-next-line no-console
+      console.log('[AuthContext] Auth state changed', { event: _event, userId: nextSession?.user?.id });
 
-      // Ignorar SOLO el evento SIGNED_IN que llega ANTES de que sync() termine
-      // Si sync() ya terminó, entonces es un login real que debemos procesar
-      if (_event === 'SIGNED_IN' && !syncCompleted) {
-        return;
-      }
+      const nextUserId = nextSession?.user?.id ?? null;
 
       // Solo hacer fetch si el usuario cambió (login/logout/cambio de cuenta)
       if (nextUserId !== currentUserId) {
+        // eslint-disable-next-line no-console
+        console.log('[AuthContext] User changed, fetching profile', { from: currentUserId, to: nextUserId });
         setSession(nextSession);
         currentUserId = nextUserId;
 
@@ -272,10 +296,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           try {
             const fetchedProfile = await fetchProfile(nextSession.user.id, nextSession.user);
             applyProfile(fetchedProfile);
-          } catch {
+            // eslint-disable-next-line no-console
+            console.log('[AuthContext] Profile fetched from auth change', { hasProfile: !!fetchedProfile });
+          } catch (error) {
             applyProfile(null);
             // eslint-disable-next-line no-console
-            console.warn('Failed to load profile from auth change');
+            console.error('[AuthContext] Failed to load profile from auth change', error);
           } finally {
             setLoading(false);
           }
@@ -285,6 +311,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } else {
         // Mismo usuario, solo actualizar session sin refetch
+        // eslint-disable-next-line no-console
+        console.log('[AuthContext] Same user, updating session only');
         setSession(nextSession);
 
         // Asegurar que loading se pone en false incluso cuando no hay cambio de usuario
