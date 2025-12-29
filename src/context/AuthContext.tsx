@@ -9,7 +9,7 @@ import {
 } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
-import { handleLinkedInCallback } from '../lib/linkedInAuthService';
+import { handleLinkedInCallback, extractLinkedInData } from '../lib/linkedInAuthService';
 
 export type ProfileRole = 'talento' | 'empresa';
 
@@ -107,10 +107,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw error;
     }
 
-    // Si no hay perfil (null), retornamos null sin lanzar error
+    // Si no hay perfil (null), crearlo si es usuario OAuth de LinkedIn
     if (!data) {
       // eslint-disable-next-line no-console
       console.warn(`Profile not found for user ${userId}`);
+
+      // Si el usuario viene de OAuth LinkedIn, crear perfil automáticamente
+      if (user) {
+        const linkedInData = extractLinkedInData(user);
+        if (linkedInData) {
+          // eslint-disable-next-line no-console
+          console.log('[AuthContext] Creating profile for LinkedIn OAuth user');
+
+          try {
+            const { error: createError } = await supabase
+              .from('profiles')
+              .insert({
+                id: userId,
+                role: 'talento',
+                full_name: linkedInData.name,
+                headline: linkedInData.headline || null,
+                linkedin_id: linkedInData.sub,
+              })
+              .select()
+              .single();
+
+            if (createError) {
+              // eslint-disable-next-line no-console
+              console.error('[AuthContext] Error creating LinkedIn profile', createError);
+              return null;
+            }
+
+            // eslint-disable-next-line no-console
+            console.log('[AuthContext] Profile created, now enriching with LinkedIn data');
+
+            // Enriquecer con avatar y otros datos
+            await handleLinkedInCallback(userId, user, true);
+
+            // Refetch para obtener el perfil completo con avatar
+            const { data: enrichedProfile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', userId)
+              .single();
+
+            return enrichedProfile as Profile;
+          } catch (err) {
+            // eslint-disable-next-line no-console
+            console.error('[AuthContext] Failed to create LinkedIn profile', err);
+            return null;
+          }
+        }
+      }
+
       return null;
     }
 
