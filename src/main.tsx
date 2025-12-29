@@ -1,4 +1,3 @@
-import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
@@ -13,12 +12,12 @@ if (window.location.hash && window.location.hash.includes('access_token')) {
   sessionStorage.setItem('supabase.auth.hash', window.location.hash);
 }
 
+// Disabled StrictMode to prevent double execution of useEffect during OAuth flow
+// StrictMode causes the OAuth callback to run twice, interrupting the session setup
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </BrowserRouter>
-  </StrictMode>,
+  <BrowserRouter>
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  </BrowserRouter>,
 );

@@ -99,27 +99,78 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // eslint-disable-next-line no-console
     console.log('[AuthContext] fetchProfile called', { userId, hasUser: !!user });
 
-    // CRITICAL FIX: Delay to allow auth.uid() to propagate after setSession()
-    // RLS policies use auth.uid() which may not be immediately available in PostgreSQL context
-    // Increased to 1500ms as shorter delays were insufficient for RLS context propagation
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // ALTERNATIVE SOLUTION: Retry query with exponential backoff and timeout to handle RLS propagation delay
+    // This approach doesn't rely on waiting a fixed time but actively retries until success or timeout
+    let data = null;
+    let error = null;
+    const maxRetries = 6;
+    let retryDelay = 150; // Start with 150ms
 
-    // eslint-disable-next-line no-console
-    console.log('[AuthContext] Starting profile query after RLS delay');
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
-
-    // eslint-disable-next-line no-console
-    console.log('[AuthContext] Profile query result', { hasData: !!data, hasError: !!error, errorCode: error?.code });
-
-    if (error) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
       // eslint-disable-next-line no-console
-      console.error('[AuthContext] Error fetching profile', error.message, error);
+      console.log(`[AuthContext] Profile query attempt ${attempt}/${maxRetries}`);
+
+      const queryPromise = supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      // Add timeout to prevent infinite hanging (3 seconds per attempt)
+      const timeoutPromise = new Promise<{ data: null, error: any }>((_, reject) =>
+        setTimeout(() => reject(new Error('Query timeout')), 3000)
+      );
+
+      try {
+        const result = await Promise.race([queryPromise, timeoutPromise]);
+        data = result.data;
+        error = result.error;
+
+        // eslint-disable-next-line no-console
+        console.log(`[AuthContext] Attempt ${attempt} result:`, { hasData: !!data, hasError: !!error, errorCode: error?.code });
+
+        // If successful (data found or confirmed not exists), break
+        if (data || error?.code === 'PGRST116') {
+          // eslint-disable-next-line no-console
+          console.log('[AuthContext] Profile query succeeded or confirmed not exists');
+          break;
+        }
+
+        // If we got an error that's not timeout-related, also break
+        if (error && error.code !== 'PGRST116') {
+          // eslint-disable-next-line no-console
+          console.error('[AuthContext] Query failed with error:', error);
+          break;
+        }
+      } catch (timeoutError) {
+        // eslint-disable-next-line no-console
+        console.warn(`[AuthContext] Attempt ${attempt} timed out after 3s, will retry...`);
+        error = timeoutError as any;
+      }
+
+      // Wait before retrying (exponential backoff)
+      if (attempt < maxRetries) {
+        // eslint-disable-next-line no-console
+        console.log(`[AuthContext] Waiting ${retryDelay}ms before retry`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        retryDelay = Math.min(retryDelay * 1.8, 2000); // Cap at 2 seconds
+      }
+    }
+
+    // eslint-disable-next-line no-console
+    console.log('[AuthContext] Final profile query result after all retries', { hasData: !!data, hasError: !!error, errorCode: error?.code });
+
+    // If error is a timeout after all retries, don't throw - treat as profile not found
+    // This allows the code to proceed with profile creation
+    if (error && error.message !== 'Query timeout') {
+      // eslint-disable-next-line no-console
+      console.error('[AuthContext] Error fetching profile (non-timeout)', error.message, error);
       throw error;
+    }
+
+    if (error?.message === 'Query timeout') {
+      // eslint-disable-next-line no-console
+      console.warn('[AuthContext] Query timed out after all retries - RLS context may not be ready. Proceeding as if profile not found.');
     }
 
     // Si no hay perfil (null), crearlo si es usuario OAuth de LinkedIn
