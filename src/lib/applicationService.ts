@@ -11,7 +11,7 @@ export interface ApplicationRecord {
   status: ApplicationStatus;
   notes: string | null;
   created_at: string;
-  updated_at: string;
+  updated_at?: string; // Opcional hasta que se ejecute fix_applications_updated_at.sql
 }
 
 export interface ApplicationWithRelations extends ApplicationRecord {
@@ -116,7 +116,7 @@ export const createApplication = async (
       talent_id: talentId,
       status: 'Recibida',
     })
-    .select()
+    .select('id, job_id, talent_id, status, notes, created_at')
     .single();
 
   if (error) {
@@ -136,7 +136,12 @@ export const fetchApplicationsByTalent = async (
   const { data, error } = await supabase
     .from('applications')
     .select(`
-      *,
+      id,
+      job_id,
+      talent_id,
+      status,
+      notes,
+      created_at,
       jobs:job_id (
         id,
         title,
@@ -183,7 +188,12 @@ export const fetchApplicationsByJob = async (
   const { data, error } = await supabase
     .from('applications')
     .select(`
-      *,
+      id,
+      job_id,
+      talent_id,
+      status,
+      notes,
+      created_at,
       profiles:talent_id (
         id,
         full_name,
@@ -221,7 +231,12 @@ export const fetchApplicationsByCompany = async (
   const { data, error } = await supabase
     .from('applications')
     .select(`
-      *,
+      id,
+      job_id,
+      talent_id,
+      status,
+      notes,
+      created_at,
       jobs:job_id!inner (
         id,
         title,
@@ -283,7 +298,7 @@ export const updateApplicationStatus = async (
     .from('applications')
     .update(payload)
     .eq('id', applicationId)
-    .select()
+    .select('id, job_id, talent_id, status, notes, created_at')
     .single();
 
   if (error) {

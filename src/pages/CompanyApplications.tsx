@@ -228,32 +228,40 @@ const CompanyApplications = () => {
                 </div>
 
                 <div className="lg:text-right">
-                  <p className="mb-2 text-sm font-semibold text-secondary">Estado:</p>
-                  <select
-                    value={application.status}
-                    onChange={(e) =>
-                      handleStatusChange(
-                        application.id,
-                        e.target.value as ApplicationStatus
-                      )
-                    }
-                    disabled={updatingId === application.id}
-                    className={`w-full rounded-2xl border border-secondary/20 px-4 py-2 text-sm font-semibold ${APPLICATION_STATUS_COLORS[application.status]} disabled:opacity-60 lg:w-auto`}
-                  >
-                    {(
-                      [
-                        'Recibida',
-                        'En revisión',
-                        'Entrevista agendada',
-                        'Aceptada',
-                        'Rechazada',
-                      ] as ApplicationStatus[]
-                    ).map((status) => (
-                      <option key={status} value={status}>
-                        {APPLICATION_STATUS_LABELS[status]}
-                      </option>
-                    ))}
-                  </select>
+                  <p className="mb-3 text-sm font-semibold text-secondary">Estado:</p>
+                  <div className="flex flex-col gap-2 lg:items-end">
+                    {/* Badge actual del estado */}
+                    <div className={`inline-block rounded-full px-4 py-2 text-sm font-semibold ${APPLICATION_STATUS_COLORS[application.status]}`}>
+                      {APPLICATION_STATUS_LABELS[application.status]}
+                    </div>
+
+                    {/* Selector desplegable mejorado */}
+                    <select
+                      value={application.status}
+                      onChange={(e) =>
+                        handleStatusChange(
+                          application.id,
+                          e.target.value as ApplicationStatus
+                        )
+                      }
+                      disabled={updatingId === application.id}
+                      className="w-full rounded-2xl border-2 border-secondary/20 bg-white px-4 py-2 text-sm font-semibold text-secondary shadow-sm transition hover:border-secondary/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 lg:w-auto"
+                    >
+                      {(
+                        [
+                          'Recibida',
+                          'En revisión',
+                          'Entrevista agendada',
+                          'Aceptada',
+                          'Rechazada',
+                        ] as ApplicationStatus[]
+                      ).map((status) => (
+                        <option key={status} value={status}>
+                          {APPLICATION_STATUS_LABELS[status]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 

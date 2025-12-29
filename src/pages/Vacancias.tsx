@@ -74,11 +74,9 @@ const Vacancias = () => {
       try {
         // Usar el valor debounced de search junto con los otros filtros
         const activeFilters = { ...filters, search: debouncedSearch };
-        console.log('[Vacancias] Fetching jobs with filters', activeFilters);
         const response = await fetchPublicJobs(activeFilters, { limit: 20, offset: 0 });
         setJobs(response.jobs);
         setHasMore(response.hasMore);
-        console.log('[Vacancias] Jobs loaded', response.jobs.length, 'hasMore:', response.hasMore);
       } catch (loadError) {
         console.error('[Vacancias] Error fetching jobs', loadError);
         setError(loadError instanceof Error ? loadError.message : 'No se pudieron cargar las vacancias.');
