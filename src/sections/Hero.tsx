@@ -4,7 +4,7 @@ import FloatingProfileCard from '../components/FloatingProfileCard';
 import { heroProfiles } from '../data/content';
 
 const Hero = () => (
-  <section className="relative isolate mt-8 overflow-hidden rounded-[32px] bg-gradient-to-br from-secondary via-secondary/95 to-primary px-6 py-16 text-white shadow-[0_30px_60px_rgba(21,30,63,0.45)] md:px-10 md:py-20">
+  <section className="relative isolate mt-8 overflow-hidden rounded-[32px] bg-gradient-to-br from-secondary via-secondary/95 to-primary px-6 py-12 text-white shadow-[0_30px_60px_rgba(21,30,63,0.45)] md:px-10 md:py-16">
     <div className="grid-overlay opacity-60" />
     <div className="noise opacity-20 mix-blend-soft-light" />
     <div className="relative z-10 mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">

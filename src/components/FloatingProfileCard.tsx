@@ -27,7 +27,11 @@ const FloatingProfileCard = ({
 }: FloatingProfileCardProps) => (
   <article
     className={`w-full max-w-sm rounded-3xl border border-white/40 bg-gradient-to-br ${accent} p-5 text-secondary shadow-lg backdrop-blur-xl animate-float`}
-    style={{ animationDelay: `${delay}s` }}
+    style={{
+      animationDelay: `${delay}s`,
+      maskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)',
+      WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)',
+    }}
   >
     <div className="flex items-center justify-between">
       <div>
