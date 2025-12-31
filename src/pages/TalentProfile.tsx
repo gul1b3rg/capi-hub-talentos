@@ -40,6 +40,7 @@ const TalentProfile = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [linkedinUsername, setLinkedinUsername] = useState('');
 
   useEffect(() => {
     if (profile) {
@@ -55,11 +56,31 @@ const TalentProfile = () => {
         avatar_url: (profile as any).avatar_url ?? '',
         is_public_profile: Boolean((profile as any).is_public_profile ?? true),
       });
+
+      // Extraer username de LinkedIn URL si existe
+      const linkedinUrl = (profile as any).linkedin_url ?? '';
+      if (linkedinUrl) {
+        const match = linkedinUrl.match(/linkedin\.com\/in\/(.+?)\/?$/);
+        if (match) {
+          setLinkedinUsername(match[1]);
+        }
+      }
     }
   }, [profile]);
 
   const handleChange = (field: keyof typeof form, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleLinkedinUsernameChange = (username: string) => {
+    setLinkedinUsername(username);
+    // Construir URL completa automáticamente
+    if (username.trim()) {
+      const fullUrl = `https://linkedin.com/in/${username.trim()}`;
+      setForm((prev) => ({ ...prev, linkedin_url: fullUrl }));
+    } else {
+      setForm((prev) => ({ ...prev, linkedin_url: '' }));
+    }
   };
 
   const handleCvFileChange = (file: File | null) => {
@@ -446,13 +467,21 @@ const TalentProfile = () => {
             </label>
             <label className="text-sm font-medium text-secondary">
               LinkedIn
-              <input
-                type="url"
-                className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-                placeholder="https://linkedin.com/in/tu-perfil"
-                value={form.linkedin_url}
-                onChange={(event) => handleChange('linkedin_url', event.target.value)}
-              />
+              <div className="mt-2 flex items-center gap-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 bg-white focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/30">
+                <span className="text-secondary/60 whitespace-nowrap">linkedin.com/in/</span>
+                <input
+                  type="text"
+                  className="flex-1 outline-none bg-transparent"
+                  placeholder="tu-usuario"
+                  value={linkedinUsername}
+                  onChange={(event) => handleLinkedinUsernameChange(event.target.value)}
+                />
+              </div>
+              {form.linkedin_url && (
+                <p className="mt-1 text-xs text-secondary/60">
+                  URL: {form.linkedin_url}
+                </p>
+              )}
             </label>
             <label className="text-sm font-medium text-secondary">
               CV (URL)
