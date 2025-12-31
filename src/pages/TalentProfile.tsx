@@ -27,7 +27,6 @@ const TalentProfile = () => {
     is_public_profile: true,
   });
   const [cvFile, setCvFile] = useState<File | null>(null);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadState, setUploadState] = useState<UploadState>({
@@ -124,7 +123,7 @@ const TalentProfile = () => {
     });
   };
 
-  const handleAvatarFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -138,29 +137,25 @@ const TalentProfile = () => {
       return;
     }
 
-    setAvatarFile(file);
-
     // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setAvatarPreview(reader.result as string);
     };
     reader.readAsDataURL(file);
-  };
 
-  const handleAvatarUpload = async () => {
-    if (!avatarFile || !user?.id) return;
+    // Upload automatically after selection
+    if (!user?.id) return;
 
     setUploadingAvatar(true);
     setError(null);
 
     try {
-      const avatarUrl = await uploadAvatarFromFile(avatarFile, user.id);
+      const avatarUrl = await uploadAvatarFromFile(file, user.id);
       await updateProfileAvatar(user.id, avatarUrl);
       await refreshProfile(user.id);
       setForm((prev) => ({ ...prev, avatar_url: avatarUrl }));
       setSuccess('Foto de perfil actualizada correctamente.');
-      setAvatarFile(null);
       setAvatarPreview(null);
 
       setTimeout(() => setSuccess(null), 3000);
@@ -526,18 +521,11 @@ const TalentProfile = () => {
                     disabled={uploadingAvatar}
                   />
 
-                  {avatarFile && (
-                    <button
-                      type="button"
-                      onClick={handleAvatarUpload}
-                      disabled={uploadingAvatar}
-                      className="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {uploadingAvatar ? 'Subiendo...' : 'Subir foto'}
-                    </button>
+                  {uploadingAvatar && (
+                    <p className="text-sm text-primary">Subiendo foto...</p>
                   )}
 
-                  {!form.avatar_url && !avatarFile && (
+                  {!form.avatar_url && !uploadingAvatar && (
                     <button
                       type="button"
                       onClick={handleLinkLinkedIn}
@@ -614,7 +602,6 @@ const TalentProfile = () => {
               onClick={() => {
                 setIsEditing(false);
                 setError(null);
-                setAvatarFile(null);
                 setAvatarPreview(null);
                 // Restaurar valores del profile
                 if (profile) {

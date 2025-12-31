@@ -3,7 +3,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-
 import Footer from './components/Footer';
 import Navbar from './components/Navbar';
 import { LoadingOverlay } from './components/LoadingOverlay';
-import { ProtectedCompanyRoute, ProtectedTalentRoute } from './components/ProtectedRoute';
+import { ProtectedRoute, ProtectedCompanyRoute, ProtectedTalentRoute } from './components/ProtectedRoute';
 import { useCurrentProfile } from './context/AuthContext';
 
 // Páginas críticas (eager loading) - Landing y autenticación
@@ -88,6 +88,11 @@ const App = () => {
           <Route path="/empresa/:id" element={<CompanyPublic />} />
           <Route path="/vacancia/:id" element={<JobDetail />} />
 
+          {/* Rutas protegidas - Requieren login (cualquier rol) */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/talento/:id" element={<TalentPublicProfile />} />
+          </Route>
+
           {/* Rutas protegidas - Talento */}
           <Route element={<ProtectedTalentRoute />}>
             <Route path="/mi-perfil" element={<TalentProfile />} />
@@ -102,7 +107,6 @@ const App = () => {
             <Route path="/editar-vacancia/:id" element={<JobEdit />} />
             <Route path="/dashboard/mis-vacancias" element={<JobsDashboard />} />
             <Route path="/dashboard/postulaciones" element={<CompanyApplications />} />
-            <Route path="/talento/:id" element={<TalentPublicProfile />} />
             <Route path="/dashboard" element={<Dashboard />} />
           </Route>
         </Routes>

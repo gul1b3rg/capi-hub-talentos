@@ -1,38 +1,205 @@
-import { talentHighlights, featuredJobs } from '../data/content';
+import { useState, useEffect } from 'react';
+import TalentCard from '../components/TalentCard';
+import TalentListFilters from '../components/TalentListFilters';
+import InfiniteScrollTrigger from '../components/InfiniteScrollTrigger';
+import { fetchPublicTalents } from '../lib/talentService';
+import type { PublicTalentProfile, TalentFilters } from '../types/talent';
 
-const Talentos = () => (
-  <section className="mx-auto mt-28 max-w-6xl px-4 pb-20 md:px-6">
-    <div className="rounded-[32px] border border-secondary/10 bg-white p-10 shadow-2xl">
-      <p className="text-xs uppercase tracking-[0.4em] text-secondary/60">Para talentos</p>
-      <h2 className="mt-2 font-display text-4xl text-secondary">Tu próximo desafío en seguros</h2>
-      <p className="mt-3 text-secondary/70">
-        Reforzá tu perfil, recibí recomendaciones hiper personalizadas y mostrale al ecosistema lo que sabés hacer.
-      </p>
-      <div className="mt-8 grid gap-6 md:grid-cols-3">
-        {talentHighlights.map((highlight) => (
-          <article key={highlight.title} className="rounded-3xl border border-accent/30 bg-accent/10 p-5">
-            <h3 className="font-semibold text-secondary">{highlight.title}</h3>
-            <p className="text-sm text-secondary/70">{highlight.description}</p>
-          </article>
-        ))}
-      </div>
-      <div className="mt-10 rounded-3xl border border-secondary/10 bg-background p-6">
-        <p className="text-sm font-semibold text-secondary/70">Vacancias destacadas</p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          {featuredJobs.slice(0, 2).map((job) => (
-            <div key={job.id} className="rounded-2xl border border-secondary/10 bg-white p-4">
-              <p className="text-xs uppercase tracking-[0.4em] text-secondary/50">{job.company}</p>
-              <p className="font-semibold text-secondary">{job.title}</p>
-              <p className="text-sm text-secondary/60">{job.location}</p>
+const TALENTS_PER_PAGE = 20;
+
+const Talentos = () => {
+  const [talents, setTalents] = useState<PublicTalentProfile[]>([]);
+  const [filters, setFilters] = useState<TalentFilters>({
+    search: '',
+    area: null,
+    experience_years: null,
+    location: '',
+    sortBy: 'popular'
+  });
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch inicial y cuando cambian filtros
+  useEffect(() => {
+    fetchTalentsData(true);
+  }, [filters]);
+
+  const fetchTalentsData = async (reset = false) => {
+    const currentPage = reset ? 0 : page;
+    const isInitialLoad = currentPage === 0;
+
+    if (isInitialLoad) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
+    setError(null);
+
+    try {
+      const { talents: newTalents, hasMore: more } = await fetchPublicTalents(
+        filters,
+        {
+          limit: TALENTS_PER_PAGE,
+          offset: currentPage * TALENTS_PER_PAGE
+        }
+      );
+
+      if (reset) {
+        setTalents(newTalents);
+        setPage(0);
+      } else {
+        setTalents((prev) => [...prev, ...newTalents]);
+      }
+
+      setHasMore(more);
+    } catch (err) {
+      setError('Error al cargar los talentos. Por favor intenta de nuevo.');
+      // eslint-disable-next-line no-console
+      console.error('Error fetching talents:', err);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      setPage((prev) => prev + 1);
+      fetchTalentsData(false);
+    }
+  };
+
+  const handleFilterChange = (newFilters: TalentFilters) => {
+    setFilters(newFilters);
+    setTalents([]);
+    setPage(0);
+    setHasMore(true);
+  };
+
+  return (
+    <div className="min-h-screen bg-background py-24">
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <header className="mb-12 text-center">
+          <h1 className="font-display text-4xl font-bold text-secondary md:text-5xl">
+            Directorio de Talentos
+          </h1>
+          <p className="mt-4 text-lg text-secondary/70">
+            Conecta con profesionales del mercado asegurador en Paraguay
+          </p>
+        </header>
+
+        {/* Filtros */}
+        <TalentListFilters filters={filters} onFilterChange={handleFilterChange} />
+
+        {/* Stats */}
+        {!loading && !error && (
+          <div className="mb-6 text-center text-sm text-secondary/70">
+            {talents.length > 0 ? (
+              <>
+                Mostrando {talents.length} talento{talents.length !== 1 ? 's' : ''}
+                {hasMore && ' (carga más abajo para ver más)'}
+              </>
+            ) : (
+              'No se encontraron talentos'
+            )}
+          </div>
+        )}
+
+        {/* Loading inicial */}
+        {loading && (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="animate-pulse rounded-3xl border border-white/40 bg-white/90 p-6"
+              >
+                <div className="mb-4 flex justify-center">
+                  <div className="h-24 w-24 rounded-full bg-secondary/10" />
+                </div>
+                <div className="mb-4 space-y-2">
+                  <div className="mx-auto h-5 w-3/4 rounded bg-secondary/10" />
+                  <div className="mx-auto h-4 w-1/2 rounded bg-secondary/10" />
+                </div>
+                <div className="space-y-2">
+                  <div className="h-4 w-full rounded bg-secondary/10" />
+                  <div className="h-4 w-2/3 rounded bg-secondary/10" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Error state */}
+        {error && !loading && (
+          <div className="rounded-3xl border border-red-200 bg-red-50 p-8 text-center">
+            <p className="text-red-600">{error}</p>
+            <button
+              onClick={() => fetchTalentsData(true)}
+              className="mt-4 rounded-full bg-red-600 px-6 py-2 text-white hover:bg-red-700"
+            >
+              Reintentar
+            </button>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!loading && !error && talents.length === 0 && (
+          <div className="rounded-3xl border border-white/40 bg-white/90 p-12 text-center backdrop-blur-xl">
+            <p className="text-lg font-semibold text-secondary">
+              No se encontraron talentos con estos criterios
+            </p>
+            <p className="mt-2 text-secondary/70">
+              Intenta ajustar los filtros de búsqueda
+            </p>
+            <button
+              onClick={() => handleFilterChange({
+                search: '',
+                area: null,
+                experience_years: null,
+                location: '',
+                sortBy: 'popular'
+              })}
+              className="mt-6 rounded-full bg-secondary px-6 py-3 font-semibold text-white hover:bg-secondary/90"
+            >
+              Limpiar filtros
+            </button>
+          </div>
+        )}
+
+        {/* Grid de talentos */}
+        {!loading && !error && talents.length > 0 && (
+          <>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {talents.map((talent) => (
+                <TalentCard key={talent.id} talent={talent} />
+              ))}
             </div>
-          ))}
-        </div>
-        <button type="button" className="mt-6 rounded-full bg-secondary px-6 py-3 font-semibold text-white">
-          Ver todas las oportunidades
-        </button>
+
+            {/* Infinite scroll trigger */}
+            {hasMore && (
+              <InfiniteScrollTrigger
+                onLoadMore={handleLoadMore}
+                hasMore={hasMore}
+                loading={loadingMore}
+              />
+            )}
+
+            {/* End message */}
+            {!hasMore && talents.length > 0 && (
+              <div className="mt-8 text-center text-sm text-secondary/60">
+                Has visto todos los talentos disponibles
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
-  </section>
-);
+  );
+};
 
 export default Talentos;

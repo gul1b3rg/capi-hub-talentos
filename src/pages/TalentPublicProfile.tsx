@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { FaEye } from 'react-icons/fa';
 import { useCurrentProfile } from '../context/AuthContext';
 import { fetchPublicTalentProfile } from '../lib/profileService';
+import { incrementProfileView, getProfileViewCount } from '../lib/talentService';
 import type { Profile } from '../context/AuthContext';
+import type { ProfileViewCount } from '../types/talent';
 
 const TalentPublicProfile = () => {
   const { id } = useParams<{ id: string }>();
-  const { role, user } = useCurrentProfile();
+  const { user } = useCurrentProfile();
   const [talent, setTalent] = useState<Profile | null>(null);
+  const [viewCount, setViewCount] = useState<ProfileViewCount>({ total: 0, lastWeek: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,16 +23,17 @@ const TalentPublicProfile = () => {
         return;
       }
 
-      // Validar que solo empresas autenticadas puedan ver perfiles
-      if (!user || role !== 'empresa') {
-        setError('No tienes permisos para ver este perfil.');
-        setLoading(false);
-        return;
-      }
-
       try {
+        // Cargar perfil (AHORA PÚBLICO - sin restricción de rol)
         const talentData = await fetchPublicTalentProfile(id);
         setTalent(talentData);
+
+        // Incrementar vista (funciona incluso sin login)
+        await incrementProfileView(id, user?.id);
+
+        // Cargar contador de vistas
+        const count = await getProfileViewCount(id);
+        setViewCount(count);
       } catch (loadError) {
         setError(
           loadError instanceof Error
@@ -41,7 +46,7 @@ const TalentPublicProfile = () => {
     };
 
     loadData();
-  }, [id, user, role]);
+  }, [id, user]);
 
   if (loading) {
     return (
@@ -66,15 +71,26 @@ const TalentPublicProfile = () => {
       <div className="rounded-3xl border border-white/40 bg-white/80 p-8 shadow-2xl backdrop-blur">
         {/* Header */}
         <div className="border-b border-secondary/10 pb-6">
-          <p className="text-xs uppercase tracking-[0.3em] text-secondary/60">
-            Perfil de Talento
-          </p>
-          <h1 className="mt-2 text-4xl font-semibold text-secondary">
-            {talent.full_name}
-          </h1>
-          {talent.headline && (
-            <p className="mt-2 text-lg text-secondary/70">{talent.headline}</p>
-          )}
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <p className="text-xs uppercase tracking-[0.3em] text-secondary/60">
+                Perfil de Talento
+              </p>
+              <h1 className="mt-2 text-4xl font-semibold text-secondary">
+                {talent.full_name}
+              </h1>
+              {talent.headline && (
+                <p className="mt-2 text-lg text-secondary/70">{talent.headline}</p>
+              )}
+            </div>
+            {/* Contador de vistas */}
+            {viewCount.lastWeek > 0 && (
+              <div className="flex items-center gap-2 rounded-full bg-secondary/5 px-4 py-2 text-sm text-secondary/70">
+                <FaEye />
+                <span>{viewCount.lastWeek} vistas esta semana</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Información básica */}
