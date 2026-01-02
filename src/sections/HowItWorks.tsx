@@ -3,17 +3,17 @@ import { LuSparkles, LuNotebookPen, LuShare2 } from 'react-icons/lu';
 const steps = [
   {
     title: 'Registrate',
-    description: 'Creá tu perfil o el de tu empresa con skills, certificaciones y verticales.',
+    description: 'Creá tu perfil o el de tu empresa para presentarte a todo el mercado asegurador.',
     icon: LuNotebookPen,
   },
   {
     title: 'Publicá o Aplicá',
-    description: 'Publicá vacancias o encontrá oportunidades hechas a tu medida.',
+    description: 'Publicá vacancias o encontrá oportunidades laborales hechas a tu medida en seguros.',
     icon: LuShare2,
   },
   {
     title: 'Conectá',
-    description: 'El sistema sugiere coincidencias basadas en tu experiencia e intereses.',
+    description: 'El Hub es para hacer conexiones y dar a conocer oportunidades profesionales en el seguro.',
     icon: LuSparkles,
   },
 ];
@@ -25,7 +25,7 @@ const HowItWorks = () => (
         <p className="text-xs uppercase tracking-[0.4em] text-secondary/60">Cómo funciona</p>
         <h2 className="font-display text-3xl text-secondary">Un flujo curado para el ecosistema asegurador</h2>
         <p className="text-secondary/70">
-          Talentos, empresas y startups colaboran en un mismo lugar con métricas compartidas.
+          Talentos y actores del ecosistema asegurador colaboran en una misma plataforma.
         </p>
       </div>
       <div className="mt-10 grid gap-6 md:grid-cols-3">

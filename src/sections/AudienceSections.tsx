@@ -58,7 +58,7 @@ const AudienceSections = () => (
       />
       <Card
         title="Para Talentos"
-        description="Tu próximo desafío profesional puede estar en suscripción, siniestros, reaseguro, comercial, prevención de fraude o gestión de riesgos."
+        description="Tu próximo desafío profesional puede estar en suscripción, siniestros, reaseguro... o en alguna de las tantas áreas publicadas."
         items={talentHighlights}
         icon={LuUsers}
         cta={{ label: 'Ver oportunidades', to: '/vacancias', variant: 'secondary' }}

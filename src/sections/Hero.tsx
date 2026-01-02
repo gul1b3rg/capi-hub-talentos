@@ -18,8 +18,7 @@ const Hero = () => (
             Conectá con los talentos que impulsan el futuro del seguro paraguayo.
           </h1>
           <p className="mt-4 text-lg text-white/80">
-            Empresas, aseguradoras y startups del ecosistema asegurador pueden publicar vacancias, descubrir
-            especialistas y activar consultorías estratégicas.
+            Aseguradoras y empresas del ecosistema asegurador pueden publicar vacancias, descubrir talentos y consultar por proyectos específicos. Un espacio para conectar entre profesionales que desarrollan la industria aseguradora en Paraguay y la región.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
