@@ -17,12 +17,12 @@ const Card = ({
 }) => (
   <article className="flex flex-col gap-6 rounded-[32px] border border-secondary/10 bg-white p-8 shadow-lg">
     <div className="flex items-center gap-4">
-      <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary text-white">
-        <Icon className="text-2xl" />
+      <span className="inline-flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-secondary text-white">
+        <Icon size={28} />
       </span>
-      <div>
-        <h3 className="font-display text-2xl text-secondary">{title}</h3>
-        <p className="text-secondary/70">{description}</p>
+      <div className="flex-1">
+        <h3 className="font-display text-xl text-secondary md:text-2xl">{title}</h3>
+        <p className="text-sm text-secondary/70 md:text-base">{description}</p>
       </div>
     </div>
     <div className="space-y-3">
