@@ -74,9 +74,9 @@ const TalentPublicProfile = () => {
           <div className="flex items-start justify-between">
             <div className="flex flex-1 items-start gap-4">
               {/* Foto de perfil */}
-              {talent.profile_picture_url && (
+              {talent.avatar_url && (
                 <img
-                  src={talent.profile_picture_url}
+                  src={talent.avatar_url}
                   alt={`Foto de ${talent.full_name}`}
                   className="h-20 w-20 flex-shrink-0 rounded-2xl border border-secondary/10 object-cover"
                 />
