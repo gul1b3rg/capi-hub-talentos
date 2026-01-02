@@ -68,7 +68,8 @@ const App = () => {
       <Navbar />
 
       {/* Spinner global durante loading (OAuth, fetch profile, etc) */}
-      <LoadingOverlay isLoading={loading} />
+      {/* Only show loading if we truly have no auth data */}
+      <LoadingOverlay isLoading={loading && !profile} />
 
       <main className="pt-24">
         <Suspense fallback={<PageLoader />}>

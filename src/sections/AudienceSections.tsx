@@ -47,7 +47,7 @@ const Card = ({
 );
 
 const AudienceSections = () => (
-  <section className="mx-auto mt-16 max-w-6xl px-4 md:px-6">
+  <section className="mx-auto mt-24 mb-32 max-w-6xl px-4 md:px-6">
     <div className="grid gap-6 md:grid-cols-2">
       <Card
         title="Para Aseguradoras"

@@ -118,6 +118,8 @@ export const fetchJobDetail = async (jobId: string) => {
       name: data.companies.name,
       industry: data.companies.industry,
       location: data.companies.location,
+      logo_url: data.companies.logo_url,
+      owner_id: data.companies.owner_id,
     };
   }
   return job;

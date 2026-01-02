@@ -88,7 +88,11 @@ const writeCachedProfile = (value: Profile | null) => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfileState] = useState<Profile | null>(() => readCachedProfile());
-  const [loading, setLoading] = useState(true);
+  // Only show loading if no cached profile exists
+  const [loading, setLoading] = useState(() => {
+    const cached = readCachedProfile();
+    return !cached;  // Start with loading=false if cache exists
+  });
 
   const applyProfile = (value: Profile | null) => {
     setProfileState(value);
@@ -372,12 +376,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     let isMounted = true;
     let currentUserId: string | null = null;
     let isRefreshing = false; // Flag to prevent duplicate fetches during refresh
+    let initialSyncCompleted = false; // Flag to track if initial sync has completed
 
     const sync = async () => {
-      setLoading(true);
+      // Check if we have cached profile
+      const cachedProfile = readCachedProfile();
+
+      // Only set loading if we don't have cache
+      if (!cachedProfile) {
+        setLoading(true);
+      }
+
       try {
         // eslint-disable-next-line no-console
-        console.log('[AuthContext] Starting initial session sync');
+        console.log('[AuthContext] Starting initial session sync', { hasCachedProfile: !!cachedProfile });
 
         // Restore OAuth hash if it was preserved by main.tsx before BrowserRouter cleared it
         const preservedHash = sessionStorage.getItem('supabase.auth.hash');
@@ -441,13 +453,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (session?.user) {
           try {
-            // eslint-disable-next-line no-console
-            console.log('[AuthContext] Fetching profile for user', session.user.id);
-            const fetchedProfile = await fetchProfile(session.user.id, session.user);
-            if (isMounted) {
-              applyProfile(fetchedProfile);
+            // If cache exists and matches user, use it immediately and fetch in background
+            if (cachedProfile && cachedProfile.id === session.user.id) {
               // eslint-disable-next-line no-console
-              console.log('[AuthContext] Profile applied', { hasProfile: !!fetchedProfile, role: fetchedProfile?.role });
+              console.log('[AuthContext] Using cached profile, fetching fresh in background');
+
+              // UI already showing cached data, fetch fresh in background
+              fetchProfile(session.user.id, session.user)
+                .then(fresh => {
+                  if (isMounted && fresh) {
+                    applyProfile(fresh);  // Update silently when ready
+                    // eslint-disable-next-line no-console
+                    console.log('[AuthContext] Profile refreshed from background fetch');
+                  }
+                })
+                .catch(err => {
+                  // eslint-disable-next-line no-console
+                  console.error('[AuthContext] Background profile refresh failed', err);
+                  // Keep using cached profile
+                });
+            } else {
+              // No cache or different user - await fetch before showing UI
+              // eslint-disable-next-line no-console
+              console.log('[AuthContext] Fetching profile for user', session.user.id);
+              const fetchedProfile = await fetchProfile(session.user.id, session.user);
+              if (isMounted) {
+                applyProfile(fetchedProfile);
+                // eslint-disable-next-line no-console
+                console.log('[AuthContext] Profile applied', { hasProfile: !!fetchedProfile, role: fetchedProfile?.role });
+              }
             }
           } catch (profileError) {
             if (isMounted) {
@@ -470,6 +504,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } finally {
         if (isMounted) {
           setLoading(false);
+          initialSyncCompleted = true; // Mark initial sync as completed
           // eslint-disable-next-line no-console
           console.log('[AuthContext] Initial sync completed');
         }
@@ -478,18 +513,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     sync();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
       if (!isMounted) return;
+
+      // Skip INITIAL_SESSION - always handled by initial sync
+      if (event === 'INITIAL_SESSION') {
+        // eslint-disable-next-line no-console
+        console.log('[AuthContext] Skipping INITIAL_SESSION event - handled by initial sync');
+        return;
+      }
+
+      // Skip SIGNED_IN only during initial mount (before initial sync completes)
+      // After initial sync, we need to handle SIGNED_IN for actual logins
+      if (event === 'SIGNED_IN' && !initialSyncCompleted) {
+        // eslint-disable-next-line no-console
+        console.log('[AuthContext] Skipping SIGNED_IN event - initial sync not yet completed');
+        return;
+      }
 
       // Skip if we're currently refreshing session during OAuth - will be handled by sync()
       if (isRefreshing) {
         // eslint-disable-next-line no-console
-        console.log('[AuthContext] Skipping auth state change during OAuth refresh', { event: _event });
+        console.log('[AuthContext] Skipping auth state change during OAuth refresh', { event });
         return;
       }
 
       // eslint-disable-next-line no-console
-      console.log('[AuthContext] Auth state changed', { event: _event, userId: nextSession?.user?.id });
+      console.log('[AuthContext] Auth state changed', { event, userId: nextSession?.user?.id });
 
       const nextUserId = nextSession?.user?.id ?? null;
 
@@ -535,8 +585,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log('[AuthContext] Same user, updating session only');
         setSession(nextSession);
 
-        // Asegurar que loading se pone en false incluso cuando no hay cambio de usuario
-        if (nextSession) {
+        // CRITICAL: If session became null, clear profile immediately
+        if (!nextSession) {
+          applyProfile(null); // Clear profile from state and localStorage
+          setLoading(false);
+        } else {
           setLoading(false);
         }
       }

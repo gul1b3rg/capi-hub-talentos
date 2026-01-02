@@ -96,22 +96,39 @@ const JobDetail = () => {
   return (
     <section className="mx-auto max-w-4xl px-4 py-16">
       <div className="rounded-3xl border border-white/40 bg-white/90 p-8 shadow-2xl backdrop-blur">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-secondary/60">{job.company?.name ?? 'Empresa'}</p>
-            <h1 className="mt-2 text-3xl font-semibold text-secondary">{job.title}</h1>
-            <p className="text-secondary/70">
-              {job.location ?? 'Ubicación flexible'} · {job.modality ?? 'Modalidad a definir'}
-            </p>
+        <div className="flex flex-col gap-6">
+          {/* Header con logo y acciones */}
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="flex items-start gap-4">
+              {job.company?.logo_url && (
+                <img
+                  src={job.company.logo_url}
+                  alt={`Logo ${job.company.name}`}
+                  className="h-16 w-16 flex-shrink-0 rounded-2xl border border-secondary/10 object-cover"
+                />
+              )}
+              <div className="flex-1">
+                <p className="text-xs uppercase tracking-[0.3em] text-secondary/60">{job.company?.name ?? 'Empresa'}</p>
+                <h1 className="mt-1 text-3xl font-semibold text-secondary">{job.title}</h1>
+                <p className="mt-1 text-secondary/70">
+                  {job.location ?? 'Ubicación flexible'} · {job.modality ?? 'Modalidad a definir'}
+                </p>
+              </div>
+            </div>
+            {job.company && (
+              <Link
+                to={`/empresa/${job.company.id}`}
+                className="rounded-full border border-secondary/20 px-5 py-2 text-sm font-semibold text-secondary hover:bg-secondary/5"
+              >
+                Ver empresa
+              </Link>
+            )}
           </div>
-          {job.company && (
-            <Link
-              to={`/empresa/${job.company.id}`}
-              className="rounded-full border border-secondary/20 px-5 py-2 text-sm font-semibold text-secondary"
-            >
-              Ver empresa
-            </Link>
-          )}
+
+          {/* Fecha de publicación */}
+          <p className="text-xs text-secondary/60">
+            Publicada el {new Date(job.created_at).toLocaleDateString('es-PY', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </p>
         </div>
         <div className="mt-6 grid gap-4 text-sm text-secondary/70 md:grid-cols-2">
           <p>

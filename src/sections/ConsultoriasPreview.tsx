@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { LuTimerReset } from 'react-icons/lu';
 
 const ConsultoriasPreview = () => (
-  <section className="mx-auto mt-16 max-w-6xl px-4 md:px-6">
+  <section className="mx-auto mt-24 max-w-6xl px-4 md:px-6">
     <div className="rounded-[32px] border border-secondary/10 bg-background p-8 shadow-inner">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-start gap-4">

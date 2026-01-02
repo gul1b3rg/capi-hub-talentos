@@ -6,9 +6,11 @@ interface RouteProps {
 }
 
 const ProtectedRouteBase = ({ allowedRoles }: RouteProps) => {
-  const { user, role, loading } = useCurrentProfile();
+  const { user, role, loading, profile } = useCurrentProfile();
 
-  const waitingForUser = loading && !user;
+  // Wait if loading, OR if we have a cached profile but user state isn't set yet
+  // (This happens during initial sync when cache exists but session restoration is async)
+  const waitingForUser = loading || (!user && profile);
   const waitingForRole = loading && Boolean(allowedRoles?.length) && !role;
 
   if (waitingForUser || waitingForRole) {

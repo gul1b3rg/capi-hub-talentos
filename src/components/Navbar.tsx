@@ -17,7 +17,9 @@ interface ActionLink {
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, role, logout } = useCurrentProfile();
+  const { user, role: contextRole, logout } = useCurrentProfile();
+  // Force role to null if no user (defensive against stale profile cache)
+  const role = user ? contextRole : null;
 
   // Filtrar navLinks basado en autenticación y rol
   const visibleNavLinks = useMemo(() => {

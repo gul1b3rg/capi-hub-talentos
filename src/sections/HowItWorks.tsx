@@ -19,7 +19,7 @@ const steps = [
 ];
 
 const HowItWorks = () => (
-  <section className="mx-auto mt-20 max-w-6xl px-4 md:px-6">
+  <section className="mx-auto mt-20 mb-32 max-w-6xl px-4 md:px-6">
     <div className="glass-panel rounded-[32px] p-10 shadow-2xl">
       <div className="flex flex-col gap-4 text-center">
         <p className="text-xs uppercase tracking-[0.4em] text-secondary/60">Cómo funciona</p>
