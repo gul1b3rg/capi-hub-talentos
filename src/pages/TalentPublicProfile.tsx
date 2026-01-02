@@ -72,16 +72,26 @@ const TalentPublicProfile = () => {
         {/* Header */}
         <div className="border-b border-secondary/10 pb-6">
           <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-xs uppercase tracking-[0.3em] text-secondary/60">
-                Perfil de Talento
-              </p>
-              <h1 className="mt-2 text-4xl font-semibold text-secondary">
-                {talent.full_name}
-              </h1>
-              {talent.headline && (
-                <p className="mt-2 text-lg text-secondary/70">{talent.headline}</p>
+            <div className="flex flex-1 items-start gap-4">
+              {/* Foto de perfil */}
+              {talent.profile_picture_url && (
+                <img
+                  src={talent.profile_picture_url}
+                  alt={`Foto de ${talent.full_name}`}
+                  className="h-20 w-20 flex-shrink-0 rounded-2xl border border-secondary/10 object-cover"
+                />
               )}
+              <div className="flex-1">
+                <p className="text-xs uppercase tracking-[0.3em] text-secondary/60">
+                  Perfil de Talento
+                </p>
+                <h1 className="mt-2 text-4xl font-semibold text-secondary">
+                  {talent.full_name}
+                </h1>
+                {talent.headline && (
+                  <p className="mt-2 text-lg text-secondary/70">{talent.headline}</p>
+                )}
+              </div>
             </div>
             {/* Contador de vistas */}
             {viewCount.lastWeek > 0 && (
