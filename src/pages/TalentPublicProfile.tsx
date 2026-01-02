@@ -126,17 +126,6 @@ const TalentPublicProfile = () => {
 
         {/* Links y acciones */}
         <div className="mt-8 flex flex-wrap gap-3">
-          {talent.cv_url && (
-            <a
-              href={talent.cv_url}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-full bg-primary px-6 py-3 font-semibold text-white hover:bg-primary/90"
-            >
-              Descargar CV
-            </a>
-          )}
-
           {talent.linkedin_url && (
             <a
               href={talent.linkedin_url}
@@ -147,14 +136,6 @@ const TalentPublicProfile = () => {
               Ver LinkedIn
             </a>
           )}
-        </div>
-
-        {/* Nota de privacidad */}
-        <div className="mt-8 rounded-2xl bg-secondary/5 px-4 py-3">
-          <p className="text-sm text-secondary/70">
-            Este perfil es visible porque {talent.full_name} se postuló a una de
-            tus vacancias.
-          </p>
         </div>
       </div>
     </section>

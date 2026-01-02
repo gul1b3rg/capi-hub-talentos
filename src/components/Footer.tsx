@@ -11,8 +11,8 @@ const Footer = () => (
           <img src={capiLogo} alt="Logo CAPI" className="h-16 w-auto" />
         </a>
         <div>
-          <p className="font-display text-lg">Hub de Talentos de Seguros</p>
-          <p className="text-sm text-white/70">Powered by Cámara Paraguaya de Insurtech</p>
+          <p className="font-display text-lg">Hub de Seguros · CAPI</p>
+          <p className="text-sm text-white/70">Iniciativa de la Cámara Paraguaya de Insurtech</p>
         </div>
       </div>
       <div className="flex items-center gap-4">

@@ -10,7 +10,7 @@ const Hero = () => (
     <div className="relative z-10 mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
       <div className="space-y-8">
         <p className="inline-flex items-center gap-2 rounded-full border border-white/30 px-4 py-2 text-xs uppercase tracking-[0.4em]">
-          Talentos · Hub CAPI
+          Hub de Seguros
           <span className="h-2 w-2 rounded-full bg-accent" />
         </p>
         <div>

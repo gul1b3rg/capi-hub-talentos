@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nRebrand platform to ''Hub CAPI'' and enhance privacy controls\n\nBranding updates:\n- Navbar logo: Changed from ''CAPI Talentos Hub'' to ''CAPI Hub''\n- Hero badge: Updated to ''Hub de Seguros''\n- Auth pages header: Changed to ''Hub CAPI''\n- Footer: Updated to ''Hub de Seguros · CAPI'' with new tagline\n- HTML title: Changed to ''Hub de Seguros - CAPI'' with SEO meta description\n- Support email: Updated to info@capi.com.py\n\nPrivacy and UX improvements:\n- Removed CV download button from public talent profiles\n- CV now only visible to companies when talent applies to their vacancies\n- Removed vacancy application notice message from talent profiles\n- Cleaner public profile view with essential information only\n\nFiles modified:\n- Navbar, Hero, AuthLayout, Footer: Consistent branding\n- TalentPublicProfile: Privacy controls for CV access\n- Login: Updated support contact email\n- index.html: Better SEO with proper title and meta description\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+    ]
+  }
+}

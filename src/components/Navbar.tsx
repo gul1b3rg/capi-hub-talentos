@@ -86,11 +86,11 @@ const Navbar = () => {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-6">
         <Link to="/inicio" className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-lg">
-            <img src={logo} alt="Talentos Hub logo" className="h-8 w-8 object-contain" />
+            <img src={logo} alt="Hub CAPI logo" className="h-8 w-8 object-contain" />
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-secondary">CAPI</p>
-            <p className="font-display text-lg text-secondary">Talentos Hub</p>
+            <p className="font-display text-lg text-secondary">Hub</p>
           </div>
         </Link>
 

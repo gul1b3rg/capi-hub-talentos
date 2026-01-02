@@ -130,7 +130,7 @@ const Login = () => {
 
       <p className="mt-4 text-center text-sm text-secondary/70">
         ¿Olvidaste tu contraseña?{' '}
-        <a href="mailto:talentos@capi.com" className="font-semibold text-primary hover:underline">
+        <a href="mailto:info@capi.com.py" className="font-semibold text-primary hover:underline">
           Escríbenos
         </a>{' '}
         para ayudarte.
