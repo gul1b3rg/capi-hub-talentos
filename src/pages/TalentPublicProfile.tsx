@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { FaEye } from 'react-icons/fa';
+import { FaEye, FaLinkedin } from 'react-icons/fa';
 import { useCurrentProfile } from '../context/AuthContext';
 import { fetchPublicTalentProfile } from '../lib/profileService';
 import { incrementProfileView, getProfileViewCount } from '../lib/talentService';
@@ -141,9 +141,10 @@ const TalentPublicProfile = () => {
               href={talent.linkedin_url}
               target="_blank"
               rel="noreferrer"
-              className="rounded-full border border-secondary/20 px-6 py-3 font-semibold text-secondary hover:bg-secondary/5"
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-secondary/20 text-xl text-secondary transition-colors hover:bg-secondary/5"
+              aria-label="Ver perfil de LinkedIn"
             >
-              Ver LinkedIn
+              <FaLinkedin />
             </a>
           )}
         </div>
