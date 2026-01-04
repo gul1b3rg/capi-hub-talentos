@@ -105,10 +105,12 @@ export const incrementProfileView = async (
 
     if (error) {
       // Ignorar errores de duplicados (misma persona vio el mismo día)
-      if (error.code !== '23505') {
+      // PostgreSQL code 23505 o Supabase code 409 (constraint violation)
+      if (error.code !== '23505' && error.code !== '409') {
         // eslint-disable-next-line no-console
         console.error('[talentService] Error incrementing profile view', error);
       }
+      // else: silently ignore duplicate view (expected behavior)
     }
   } catch (error) {
     // Silent fail - no bloquear UX
