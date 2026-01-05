@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
+import { FaEye } from 'react-icons/fa';
 import { useCurrentProfile } from '../context/AuthContext';
 import { isProfileReadyForApplication, updateProfile, updateProfileAvatar } from '../lib/profileService';
 import { uploadCvFile, uploadAvatarFromFile } from '../lib/storageService';
 import { linkLinkedInAccount } from '../lib/linkedInAuthService';
 import { validateCvFile } from '../lib/fileValidation';
+import { getProfileViewCount } from '../lib/talentService';
 import type { UploadState } from '../types/upload';
+import type { ProfileViewCount } from '../types/talent';
 import ProgressBar from '../components/ProgressBar';
 import FileUploadPreview from '../components/FileUploadPreview';
 
@@ -40,6 +43,7 @@ const TalentProfile = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [linkedinUsername, setLinkedinUsername] = useState('');
+  const [viewCount, setViewCount] = useState<ProfileViewCount>({ total: 0, lastWeek: 0 });
 
   useEffect(() => {
     if (profile) {
@@ -64,6 +68,18 @@ const TalentProfile = () => {
           setLinkedinUsername(match[1]);
         }
       }
+
+      // Cargar estadísticas de vistas del perfil
+      const loadViewCount = async () => {
+        try {
+          const count = await getProfileViewCount(profile.id);
+          setViewCount(count);
+        } catch (err) {
+          // Silently fail - no mostrar error si falla carga de estadísticas
+          console.warn('Failed to load profile view count', err);
+        }
+      };
+      loadViewCount();
     }
   }, [profile]);
 
@@ -292,7 +308,7 @@ const TalentProfile = () => {
             <p className="mt-1 text-secondary/70">
               {isEditing ? 'Actualiza tu información para postulaciones' : form.headline || 'Especialista en seguros'}
             </p>
-            <div className="mt-2 text-xs font-semibold uppercase tracking-[0.2em]">
+            <div className="mt-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
               {ready ? (
                 <span className="rounded-full bg-green-100 px-3 py-1 text-green-700">Listo para postular</span>
               ) : (
@@ -309,6 +325,38 @@ const TalentProfile = () => {
             </button>
           )}
         </div>
+
+        {/* Estadísticas de vistas - Solo visible en modo vista */}
+        {!isEditing && viewCount.total > 0 && (
+          <div className="mt-6 rounded-2xl border border-secondary/10 bg-gradient-to-br from-primary/5 to-secondary/5 p-6">
+            <div className="flex items-center gap-2 text-sm font-semibold text-secondary">
+              <FaEye className="text-primary" />
+              <span>Estadísticas de tu perfil</span>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+              <div>
+                <p className="text-2xl font-bold text-secondary">{viewCount.total}</p>
+                <p className="text-xs text-secondary/60">Vistas totales</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-primary">{viewCount.lastWeek || 0}</p>
+                <p className="text-xs text-secondary/60">Última semana</p>
+              </div>
+              {viewCount.lastMonth !== undefined && (
+                <div>
+                  <p className="text-2xl font-bold text-secondary">{viewCount.lastMonth}</p>
+                  <p className="text-xs text-secondary/60">Último mes</p>
+                </div>
+              )}
+              {viewCount.uniqueViewers !== undefined && (
+                <div>
+                  <p className="text-2xl font-bold text-secondary">{viewCount.uniqueViewers}</p>
+                  <p className="text-xs text-secondary/60">Visitantes únicos</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Vista de solo lectura */}
         {!isEditing && (
