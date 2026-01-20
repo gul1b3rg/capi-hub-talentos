@@ -7,7 +7,7 @@ import { uploadCompanyLogoFromFile, uploadCompanyLogoFromUrl } from '../lib/stor
 import { useCurrentProfile } from '../context/AuthContext';
 
 const CompanyEdit = () => {
-  const { user, profile } = useCurrentProfile();
+  const { user } = useCurrentProfile();
   const navigate = useNavigate();
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [initialValues, setInitialValues] = useState<CompanyFormValues | null>(null);
