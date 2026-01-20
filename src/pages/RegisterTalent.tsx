@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
@@ -12,7 +12,7 @@ type RegistrationMode = 'choice' | 'email' | 'linkedin';
 
 const RegisterTalent = () => {
   const navigate = useNavigate();
-  const { refreshProfile } = useCurrentProfile();
+  const { user, profile, loading: authLoading, refreshProfile } = useCurrentProfile();
 
   const [mode, setMode] = useState<RegistrationMode>('choice');
   const [form, setForm] = useState({
@@ -26,6 +26,31 @@ const RegisterTalent = () => {
   const [linkedInError, setLinkedInError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Redirigir si ya está autenticado
+  useEffect(() => {
+    if (!authLoading && user && profile) {
+      if (profile.role === 'empresa') {
+        navigate('/dashboard', { replace: true });
+      } else {
+        navigate('/mi-perfil', { replace: true });
+      }
+    }
+  }, [authLoading, user, profile, navigate]);
+
+  // Mostrar loading mientras verifica sesión
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-secondary/70">Cargando...</p>
+      </div>
+    );
+  }
+
+  // Si ya está autenticado, no mostrar nada (se redirigirá)
+  if (user && profile) {
+    return null;
+  }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
