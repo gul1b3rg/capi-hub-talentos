@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaInfoCircle } from 'react-icons/fa';
 import AuthLayout from '../components/AuthLayout';
 import { updateProfile } from '../lib/profileService';
 import { supabase } from '../lib/supabaseClient';
@@ -14,6 +14,7 @@ const RegisterCompany = () => {
   const [form, setForm] = useState({
     companyName: '',
     email: '',
+    phone: '',
     password: '',
   });
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -127,6 +128,14 @@ const RegisterCompany = () => {
         { label: '¿Sos talento?', to: '/register-talent' },
       ]}
     >
+      {/* Info banner */}
+      <div className="mb-4 flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3">
+        <FaInfoCircle className="mt-0.5 flex-shrink-0 text-blue-500" />
+        <p className="text-sm text-blue-700">
+          Registrate como responsable autorizado de tu empresa para publicar vacancias y gestionar postulaciones en su nombre.
+        </p>
+      </div>
+
       <form className="space-y-4" onSubmit={handleSubmit}>
         <label className="block text-sm font-medium text-secondary">
           Razón Social de la Empresa
@@ -140,14 +149,24 @@ const RegisterCompany = () => {
           />
         </label>
         <label className="block text-sm font-medium text-secondary">
-          Email corporativo
+          Email del responsable corporativo
           <input
             type="email"
             className="mt-1 w-full rounded-2xl border border-secondary/20 bg-white px-4 py-3 text-secondary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-            placeholder="talento@aseguradora.com.py"
+            placeholder="responsable@aseguradora.com.py"
             value={form.email}
             onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
             required
+          />
+        </label>
+        <label className="block text-sm font-medium text-secondary">
+          Teléfono del responsable
+          <input
+            type="tel"
+            className="mt-1 w-full rounded-2xl border border-secondary/20 bg-white px-4 py-3 text-secondary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+            placeholder="+595 981 123456"
+            value={form.phone}
+            onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
           />
         </label>
         <label className="block text-sm font-medium text-secondary">
