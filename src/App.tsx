@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import { LoadingOverlay } from './components/LoadingOverlay';
 import { ProtectedRoute, ProtectedCompanyRoute, ProtectedTalentRoute } from './components/ProtectedRoute';
 import { useCurrentProfile } from './context/AuthContext';
+import PasswordGate from './components/PasswordGate';
 
 // Páginas críticas (eager loading) - Landing y autenticación
 import Inicio from './pages/Inicio';
@@ -64,6 +65,7 @@ const App = () => {
   }, [user, profile, role, loading, location.pathname, navigate]);
 
   return (
+    <PasswordGate>
     <div className="min-h-screen bg-background text-text">
       <Navbar />
 
@@ -115,6 +117,7 @@ const App = () => {
     </main>
     <Footer />
   </div>
+    </PasswordGate>
   );
 };
 
