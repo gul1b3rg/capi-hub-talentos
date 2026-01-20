@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { FaEnvelope, FaPhone } from 'react-icons/fa';
 import {
   fetchActiveJobsForCompany,
   fetchCompanyById,
@@ -89,6 +90,24 @@ const CompanyPublic = () => {
                 Visitar sitio web
               </a>
             )}
+            {/* Contacto corporativo */}
+            <div className="mt-3 flex flex-wrap gap-4">
+              {company.corporate_email && (
+                <a
+                  href={`mailto:${company.corporate_email}`}
+                  className="flex items-center gap-2 text-sm text-secondary/70 hover:text-primary"
+                >
+                  <FaEnvelope className="text-primary" />
+                  {company.corporate_email}
+                </a>
+              )}
+              {company.corporate_phone && (
+                <span className="flex items-center gap-2 text-sm text-secondary/70">
+                  <FaPhone className="text-primary" />
+                  {company.corporate_phone}
+                </span>
+              )}
+            </div>
           </div>
         </div>
         <p className="mt-8 whitespace-pre-line text-secondary/80">

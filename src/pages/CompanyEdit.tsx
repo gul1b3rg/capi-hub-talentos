@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaGlobe, FaMapMarkerAlt, FaIndustry, FaPhone, FaUser } from 'react-icons/fa';
+import { FaGlobe, FaMapMarkerAlt, FaIndustry, FaPhone, FaEnvelope } from 'react-icons/fa';
 import CompanyProfileForm, { type CompanyFormValues } from '../components/CompanyProfileForm';
 import { fetchCompanyByOwner, updateCompanyProfile } from '../lib/companyService';
 import { uploadCompanyLogoFromFile, uploadCompanyLogoFromUrl } from '../lib/storageService';
@@ -42,8 +42,8 @@ const CompanyEdit = () => {
           website: company.website ?? '',
           industry: company.industry ?? '',
           location: company.location ?? '',
-          phone: company.phone ?? '',
-          responsible_name: company.responsible_name ?? '',
+          corporate_email: company.corporate_email ?? '',
+          corporate_phone: company.corporate_phone ?? '',
         });
       } catch (loadError) {
         setError(loadError instanceof Error ? loadError.message : 'Error cargando tu empresa.');
@@ -194,16 +194,18 @@ const CompanyEdit = () => {
                   <span>{initialValues.industry}</span>
                 </div>
               )}
-              {initialValues.responsible_name && (
+              {initialValues.corporate_email && (
                 <div className="flex items-center gap-3 text-secondary/70">
-                  <FaUser className="text-primary" />
-                  <span>{initialValues.responsible_name}</span>
+                  <FaEnvelope className="text-primary" />
+                  <a href={`mailto:${initialValues.corporate_email}`} className="hover:text-primary hover:underline">
+                    {initialValues.corporate_email}
+                  </a>
                 </div>
               )}
-              {initialValues.phone && (
+              {initialValues.corporate_phone && (
                 <div className="flex items-center gap-3 text-secondary/70">
                   <FaPhone className="text-primary" />
-                  <span>{initialValues.phone}</span>
+                  <span>{initialValues.corporate_phone}</span>
                 </div>
               )}
             </div>

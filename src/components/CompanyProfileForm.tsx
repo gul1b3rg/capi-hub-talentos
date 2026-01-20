@@ -8,8 +8,8 @@ export interface CompanyFormValues {
   website: string;
   industry: string;
   location: string;
-  phone: string;
-  responsible_name: string;
+  corporate_email: string;
+  corporate_phone: string;
 }
 
 interface CompanyProfileFormProps {
@@ -28,8 +28,8 @@ const defaultValues: CompanyFormValues = {
   website: '',
   industry: '',
   location: '',
-  phone: '',
-  responsible_name: '',
+  corporate_email: '',
+  corporate_phone: '',
 };
 
 const MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5MB
@@ -145,23 +145,39 @@ const CompanyProfileForm = ({
           />
         </label>
         <label className="text-sm font-medium text-secondary">
-          Nombre del responsable
+          <span className="flex items-center gap-2">
+            Correo corporativo
+            <span className="group relative">
+              <FaInfoCircle className="cursor-help text-secondary/40 hover:text-secondary/60" />
+              <span className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-lg bg-secondary p-2 text-xs font-normal text-white shadow-lg group-hover:block">
+                Correo institucional de la empresa para contacto público
+              </span>
+            </span>
+          </span>
           <input
-            type="text"
+            type="email"
             className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-            placeholder="Juan Pérez"
-            value={formValues.responsible_name}
-            onChange={(event) => handleChange('responsible_name', event.target.value)}
+            placeholder="contacto@empresa.com.py"
+            value={formValues.corporate_email}
+            onChange={(event) => handleChange('corporate_email', event.target.value)}
           />
         </label>
         <label className="text-sm font-medium text-secondary">
-          Teléfono del responsable
+          <span className="flex items-center gap-2">
+            Teléfono
+            <span className="group relative">
+              <FaInfoCircle className="cursor-help text-secondary/40 hover:text-secondary/60" />
+              <span className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-lg bg-secondary p-2 text-xs font-normal text-white shadow-lg group-hover:block">
+                Teléfono de contacto de la empresa
+              </span>
+            </span>
+          </span>
           <input
             type="tel"
             className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-            placeholder="+595 981 123456"
-            value={formValues.phone}
-            onChange={(event) => handleChange('phone', event.target.value)}
+            placeholder="+595 21 123456"
+            value={formValues.corporate_phone}
+            onChange={(event) => handleChange('corporate_phone', event.target.value)}
           />
         </label>
         <label className="text-sm font-medium text-secondary">
