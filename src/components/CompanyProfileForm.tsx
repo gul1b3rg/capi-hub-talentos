@@ -181,15 +181,8 @@ const CompanyProfileForm = ({
           />
         </label>
         <label className="text-sm font-medium text-secondary">
-          Logo URL
-          <input
-            type="url"
-            className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-            placeholder="https://cdn.capi.com/logo.png"
-            value={formValues.logo_url}
-            onChange={(event) => handleChange('logo_url', event.target.value)}
-          />
-          <p className="mt-2 text-xs text-secondary/60">O carga un archivo desde tu equipo (máx. 5MB):</p>
+          Logo de la empresa
+          <p className="mt-1 text-xs text-secondary/60">Formatos: JPG, PNG, WebP. Máximo 5MB.</p>
           <input
             type="file"
             accept="image/*"
@@ -202,6 +195,11 @@ const CompanyProfileForm = ({
           {logoFile && !logoError && (
             <p className="mt-1 text-xs text-green-600">
               Archivo seleccionado: <span className="font-semibold">{logoFile.name}</span> ({(logoFile.size / 1024).toFixed(0)}KB)
+            </p>
+          )}
+          {!logoFile && formValues.logo_url && (
+            <p className="mt-1 text-xs text-secondary/60">
+              Logo actual guardado. Subí un nuevo archivo para reemplazarlo.
             </p>
           )}
         </label>

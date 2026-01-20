@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CompanyProfileForm, { type CompanyFormValues } from '../components/CompanyProfileForm';
 import { createCompanyProfile, fetchCompanyByOwner } from '../lib/companyService';
-import { uploadCompanyLogoFromFile, uploadCompanyLogoFromUrl } from '../lib/storageService';
+import { uploadCompanyLogoFromFile } from '../lib/storageService';
 import { useCurrentProfile } from '../context/AuthContext';
 
 const CompanyCreate = () => {
@@ -41,13 +41,11 @@ const CompanyCreate = () => {
     setError(null);
     setSuccess(null);
     try {
-      let logoUrl = values.logo_url?.trim() ?? '';
+      let logoUrl = '';
       if (options?.logoFile) {
         logoUrl = await uploadCompanyLogoFromFile(options.logoFile, user.id);
-      } else if (logoUrl) {
-        logoUrl = await uploadCompanyLogoFromUrl(logoUrl, user.id);
       }
-      await createCompanyProfile(user.id, { ...values, logo_url: logoUrl });
+      await createCompanyProfile(user.id, { ...values, logo_url: logoUrl || undefined });
       setSuccess('Perfil de empresa creado con éxito.');
       setTimeout(() => navigate('/empresa/editar'), 1500);
     } catch (submitError) {

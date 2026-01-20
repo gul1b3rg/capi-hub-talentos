@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaGlobe, FaMapMarkerAlt, FaIndustry, FaPhone, FaEnvelope } from 'react-icons/fa';
 import CompanyProfileForm, { type CompanyFormValues } from '../components/CompanyProfileForm';
 import { fetchCompanyByOwner, updateCompanyProfile } from '../lib/companyService';
-import { uploadCompanyLogoFromFile, uploadCompanyLogoFromUrl } from '../lib/storageService';
+import { uploadCompanyLogoFromFile } from '../lib/storageService';
 import { useCurrentProfile } from '../context/AuthContext';
 
 const CompanyEdit = () => {
@@ -63,15 +63,11 @@ const CompanyEdit = () => {
     try {
       // eslint-disable-next-line no-console
       console.log('[CompanyEdit] Submitting form', { values, hasFile: Boolean(options?.logoFile) });
-      let logoUrl = values.logo_url?.trim() ?? initialValues?.logo_url ?? '';
+      let logoUrl = initialValues?.logo_url ?? '';
       if (options?.logoFile) {
         // eslint-disable-next-line no-console
         console.log('[CompanyEdit] Uploading logo from file');
         logoUrl = await uploadCompanyLogoFromFile(options.logoFile, companyId);
-      } else if (logoUrl && logoUrl !== initialValues?.logo_url && /^https?:\/\//.test(logoUrl)) {
-        // eslint-disable-next-line no-console
-        console.log('[CompanyEdit] Uploading logo from URL');
-        logoUrl = await uploadCompanyLogoFromUrl(logoUrl, companyId);
       }
       await updateCompanyProfile(companyId, { ...values, logo_url: logoUrl });
       // eslint-disable-next-line no-console
