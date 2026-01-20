@@ -77,6 +77,60 @@ export const fetchCompaniesForFilters = async () => {
   return (data ?? []) as { id: string; name: string }[];
 };
 
+export interface CompanyListItem {
+  id: string;
+  name: string;
+  industry: string | null;
+  location: string | null;
+  logo_url: string | null;
+}
+
+export interface CompanyFilters {
+  search: string;
+}
+
+export interface CompanyPagination {
+  limit: number;
+  offset: number;
+}
+
+/**
+ * Obtiene lista paginada de empresas para el directorio público
+ */
+export const fetchPublicCompanies = async (
+  filters: CompanyFilters,
+  pagination: CompanyPagination
+): Promise<{ companies: CompanyListItem[]; hasMore: boolean }> => {
+  let query = supabase
+    .from('companies')
+    .select('id, name, industry, location, logo_url')
+    .order('name', { ascending: true });
+
+  // Filtro de búsqueda por nombre
+  if (filters.search.trim()) {
+    query = query.ilike('name', `%${filters.search.trim()}%`);
+  }
+
+  // Paginación
+  const { limit, offset } = pagination;
+  query = query.range(offset, offset + limit - 1);
+
+  const { data, error } = await query;
+
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error('[companyService] Error fetching public companies', error);
+    throw error;
+  }
+
+  const hasMore = data.length === limit;
+
+  return {
+    companies: data as CompanyListItem[],
+    hasMore,
+  };
+};
+
 export const updateCompanyProfile = async (companyId: string, payload: CompanyPayload) => {
   const { data, error } = await supabase.from('companies').update(payload).eq('id', companyId).select().single();
 
