@@ -32,6 +32,13 @@ const RegisterTalent = () => {
     setError(null);
     setSuccess(null);
 
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      setError('Por favor ingresa un email válido (ej: usuario@dominio.com).');
+      return;
+    }
+
     setLoading(true);
 
     const { data, error } = await supabase.auth.signUp({

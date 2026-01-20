@@ -28,6 +28,13 @@ const RegisterCompany = () => {
     setError(null);
     setSuccess(null);
 
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      setError('Por favor ingresa un email válido (ej: usuario@dominio.com).');
+      return;
+    }
+
     // Validar que las contraseñas coincidan
     if (form.password !== confirmPassword) {
       setError('Las contraseñas no coinciden.');
