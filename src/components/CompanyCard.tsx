@@ -32,13 +32,13 @@ const CompanyCard = memo(({ company }: CompanyCardProps) => (
         <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-secondary/70">
           {company.industry && (
             <span className="flex items-center gap-1.5">
-              <FaIndustry className="text-primary/70" />
+              <FaIndustry className="text-secondary/40" />
               {company.industry}
             </span>
           )}
           {company.location && (
             <span className="flex items-center gap-1.5">
-              <FaMapMarkerAlt className="text-primary/70" />
+              <FaMapMarkerAlt className="text-secondary/40" />
               {company.location}
             </span>
           )}

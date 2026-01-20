@@ -86,12 +86,12 @@ const App = () => {
           <Route path="/empresas" element={<Empresas />} />
           <Route path="/talentos" element={<Talentos />} />
           <Route path="/consultorias" element={<Consultorias />} />
-          <Route path="/empresa/:id" element={<CompanyPublic />} />
           <Route path="/vacancia/:id" element={<JobDetail />} />
 
           {/* Rutas protegidas - Requieren login (cualquier rol) */}
           <Route element={<ProtectedRoute />}>
             <Route path="/talento/:id" element={<TalentPublicProfile />} />
+            <Route path="/empresa/:id" element={<CompanyPublic />} />
           </Route>
 
           {/* Rutas protegidas - Talento */}

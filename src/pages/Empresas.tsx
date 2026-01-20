@@ -85,7 +85,7 @@ const Empresas = () => {
       <div className="mb-10 text-center">
         <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">Directorio</p>
         <h1 className="mt-2 text-4xl font-semibold text-secondary">Empresas en la plataforma</h1>
-        <p className="text-secondary/70">Descubre las empresas que buscan talento en el sector asegurador.</p>
+        <p className="text-secondary/70">Descubre las aseguradoras y empresas que están conectadas en el sector asegurador.</p>
       </div>
 
       {/* Barra de búsqueda */}
