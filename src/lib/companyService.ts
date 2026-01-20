@@ -9,6 +9,8 @@ export interface Company {
   website: string | null;
   industry: string | null;
   location: string | null;
+  phone: string | null;
+  responsible_name: string | null;
   created_at: string;
 }
 
@@ -19,6 +21,8 @@ export interface CompanyPayload {
   website?: string;
   industry?: string;
   location?: string;
+  phone?: string;
+  responsible_name?: string;
 }
 
 export const fetchCompanyByOwner = async (ownerId: string) => {

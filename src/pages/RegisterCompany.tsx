@@ -13,6 +13,7 @@ const RegisterCompany = () => {
 
   const [form, setForm] = useState({
     companyName: '',
+    responsibleName: '',
     email: '',
     phone: '',
     password: '',
@@ -145,6 +146,17 @@ const RegisterCompany = () => {
             placeholder="Aseguradora ABC S.A."
             value={form.companyName}
             onChange={(event) => setForm((prev) => ({ ...prev, companyName: event.target.value }))}
+            required
+          />
+        </label>
+        <label className="block text-sm font-medium text-secondary">
+          Nombre y Apellido del Responsable
+          <input
+            type="text"
+            className="mt-1 w-full rounded-2xl border border-secondary/20 bg-white px-4 py-3 text-secondary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+            placeholder="Juan Pérez"
+            value={form.responsibleName}
+            onChange={(event) => setForm((prev) => ({ ...prev, responsibleName: event.target.value }))}
             required
           />
         </label>

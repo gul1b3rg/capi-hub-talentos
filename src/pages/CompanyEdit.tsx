@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaGlobe, FaMapMarkerAlt, FaIndustry } from 'react-icons/fa';
+import { FaGlobe, FaMapMarkerAlt, FaIndustry, FaPhone, FaUser } from 'react-icons/fa';
 import CompanyProfileForm, { type CompanyFormValues } from '../components/CompanyProfileForm';
 import { fetchCompanyByOwner, updateCompanyProfile } from '../lib/companyService';
 import { uploadCompanyLogoFromFile, uploadCompanyLogoFromUrl } from '../lib/storageService';
@@ -42,6 +42,8 @@ const CompanyEdit = () => {
           website: company.website ?? '',
           industry: company.industry ?? '',
           location: company.location ?? '',
+          phone: company.phone ?? '',
+          responsible_name: company.responsible_name ?? '',
         });
       } catch (loadError) {
         setError(loadError instanceof Error ? loadError.message : 'Error cargando tu empresa.');
@@ -190,6 +192,18 @@ const CompanyEdit = () => {
                 <div className="flex items-center gap-3 text-secondary/70">
                   <FaIndustry className="text-primary" />
                   <span>{initialValues.industry}</span>
+                </div>
+              )}
+              {initialValues.responsible_name && (
+                <div className="flex items-center gap-3 text-secondary/70">
+                  <FaUser className="text-primary" />
+                  <span>{initialValues.responsible_name}</span>
+                </div>
+              )}
+              {initialValues.phone && (
+                <div className="flex items-center gap-3 text-secondary/70">
+                  <FaPhone className="text-primary" />
+                  <span>{initialValues.phone}</span>
                 </div>
               )}
             </div>

@@ -8,6 +8,8 @@ export interface CompanyFormValues {
   website: string;
   industry: string;
   location: string;
+  phone: string;
+  responsible_name: string;
 }
 
 interface CompanyProfileFormProps {
@@ -26,6 +28,8 @@ const defaultValues: CompanyFormValues = {
   website: '',
   industry: '',
   location: '',
+  phone: '',
+  responsible_name: '',
 };
 
 const MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5MB
@@ -138,6 +142,26 @@ const CompanyProfileForm = ({
             placeholder="Asunción, Paraguay"
             value={formValues.location}
             onChange={(event) => handleChange('location', event.target.value)}
+          />
+        </label>
+        <label className="text-sm font-medium text-secondary">
+          Nombre del responsable
+          <input
+            type="text"
+            className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+            placeholder="Juan Pérez"
+            value={formValues.responsible_name}
+            onChange={(event) => handleChange('responsible_name', event.target.value)}
+          />
+        </label>
+        <label className="text-sm font-medium text-secondary">
+          Teléfono del responsable
+          <input
+            type="tel"
+            className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+            placeholder="+595 981 123456"
+            value={formValues.phone}
+            onChange={(event) => handleChange('phone', event.target.value)}
           />
         </label>
         <label className="text-sm font-medium text-secondary">
