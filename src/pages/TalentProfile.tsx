@@ -490,7 +490,7 @@ const TalentProfile = () => {
               </select>
             </label>
             <label className="text-sm font-medium text-secondary">
-              Disponibilidad
+              Disponibilidad (opcional)
               <input
                 type="text"
                 className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
