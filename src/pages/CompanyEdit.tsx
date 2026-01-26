@@ -91,7 +91,7 @@ const CompanyEdit = () => {
 
   if (loading) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-16">
+      <section className="mx-auto max-w-4xl px-4 py-8">
         <p className="text-center text-secondary/70">Cargando datos de tu empresa...</p>
       </section>
     );
@@ -99,7 +99,7 @@ const CompanyEdit = () => {
 
   if (error && !initialValues) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-16">
+      <section className="mx-auto max-w-4xl px-4 py-8">
         <p className="rounded-3xl bg-red-50 px-6 py-4 text-center text-red-600">{error}</p>
       </section>
     );
@@ -110,7 +110,7 @@ const CompanyEdit = () => {
   }
 
   return (
-    <section className="mx-auto max-w-4xl px-4 py-16">
+    <section className="mx-auto max-w-4xl px-4 py-8">
       <div className="rounded-3xl border border-white/40 bg-white/80 p-8 shadow-xl backdrop-blur">
         <div className="flex items-start justify-between">
           <div>

@@ -297,7 +297,7 @@ const TalentProfile = () => {
 
   if (loading && !profile) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-16">
+      <section className="mx-auto max-w-4xl px-4 py-8">
         <p className="text-center text-secondary/70">Cargando perfil...</p>
       </section>
     );
@@ -305,7 +305,7 @@ const TalentProfile = () => {
 
   if (!profile) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-16">
+      <section className="mx-auto max-w-4xl px-4 py-8">
         <div className="rounded-3xl border border-dashed border-secondary/30 bg-white/60 p-10 text-center shadow-xl">
           <p className="text-secondary/70">No encontramos tu perfil. Intenta volver a ingresar.</p>
         </div>
@@ -314,7 +314,7 @@ const TalentProfile = () => {
   }
 
   return (
-    <section className="mx-auto max-w-4xl px-4 py-16">
+    <section className="mx-auto max-w-4xl px-4 py-8">
       <div className="rounded-3xl border border-white/40 bg-white/90 p-8 shadow-2xl backdrop-blur">
         <div className="flex items-start justify-between">
           <div>

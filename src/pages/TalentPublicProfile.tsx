@@ -50,7 +50,7 @@ const TalentPublicProfile = () => {
 
   if (loading) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-16">
+      <section className="mx-auto max-w-4xl px-4 py-8">
         <p className="text-center text-secondary/70">Cargando perfil...</p>
       </section>
     );
@@ -58,7 +58,7 @@ const TalentPublicProfile = () => {
 
   if (error || !talent) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-16">
+      <section className="mx-auto max-w-4xl px-4 py-8">
         <p className="rounded-3xl bg-red-50 px-6 py-4 text-center text-red-600">
           {error ?? 'Perfil no encontrado'}
         </p>
@@ -67,7 +67,7 @@ const TalentPublicProfile = () => {
   }
 
   return (
-    <section className="mx-auto max-w-4xl px-4 py-16">
+    <section className="mx-auto max-w-4xl px-4 py-8">
       <div className="rounded-3xl border border-white/40 bg-white/80 p-8 shadow-2xl backdrop-blur">
         {/* Header */}
         <div className="border-b border-secondary/10 pb-6">

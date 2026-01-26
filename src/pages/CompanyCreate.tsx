@@ -57,7 +57,7 @@ const CompanyCreate = () => {
 
   if (!user) {
     return (
-      <section className="mx-auto max-w-3xl px-4 py-16">
+      <section className="mx-auto max-w-3xl px-4 py-8">
         <p className="rounded-3xl bg-red-50 px-6 py-4 text-center text-red-600">
           Necesitas iniciar sesión para crear tu empresa.
         </p>
@@ -67,14 +67,14 @@ const CompanyCreate = () => {
 
   if (checking) {
     return (
-      <section className="mx-auto max-w-3xl px-4 py-16">
+      <section className="mx-auto max-w-3xl px-4 py-8">
         <p className="text-center text-secondary/70">Verificando si ya tienes un perfil de empresa...</p>
       </section>
     );
   }
 
   return (
-    <section className="mx-auto max-w-4xl px-4 py-16">
+    <section className="mx-auto max-w-4xl px-4 py-8">
       <div className="rounded-3xl border border-white/40 bg-white/80 p-8 shadow-xl backdrop-blur">
         <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">Configuración</p>
         <h1 className="mt-2 text-3xl font-semibold text-secondary">

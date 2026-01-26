@@ -63,7 +63,7 @@ const JobsDashboard = () => {
 
   if (loading) {
     return (
-      <section className="mx-auto max-w-5xl px-4 py-16">
+      <section className="mx-auto max-w-5xl px-4 py-8">
         <p className="text-center text-secondary/70">Cargando vacancias...</p>
       </section>
     );
@@ -71,14 +71,14 @@ const JobsDashboard = () => {
 
   if (error) {
     return (
-      <section className="mx-auto max-w-5xl px-4 py-16">
+      <section className="mx-auto max-w-5xl px-4 py-8">
         <p className="rounded-3xl bg-red-50 px-6 py-4 text-center text-red-600">{error}</p>
       </section>
     );
   }
 
   return (
-    <section className="mx-auto max-w-5xl px-4 py-16">
+    <section className="mx-auto max-w-5xl px-4 py-8">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">Mis vacancias</p>

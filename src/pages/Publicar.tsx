@@ -69,7 +69,7 @@ const Publicar = () => {
 
   if (loading) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-16">
+      <section className="mx-auto max-w-4xl px-4 py-8">
         <p className="text-center text-secondary/70">Verificando tu empresa...</p>
       </section>
     );
@@ -77,7 +77,7 @@ const Publicar = () => {
 
   if (!companyId) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-16">
+      <section className="mx-auto max-w-4xl px-4 py-8">
         <div className="rounded-3xl border border-dashed border-secondary/30 bg-white/60 p-10 text-center shadow-xl">
           <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">Publicar</p>
           <h1 className="mt-3 text-3xl font-semibold text-secondary">Necesitas crear tu empresa</h1>
@@ -88,7 +88,7 @@ const Publicar = () => {
   }
 
   return (
-    <section className="mx-auto max-w-4xl px-4 py-16">
+    <section className="mx-auto max-w-4xl px-4 py-8">
       <div className="rounded-3xl border border-white/40 bg-white/90 p-8 shadow-2xl backdrop-blur">
         <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">Publicar vacancia</p>
         <h1 className="mt-2 text-3xl font-semibold text-secondary">

@@ -45,7 +45,7 @@ const CompanyPublic = () => {
 
   if (loading) {
     return (
-      <section className="mx-auto max-w-5xl px-4 py-16">
+      <section className="mx-auto max-w-5xl px-4 py-8">
         <p className="text-center text-secondary/70">Cargando perfil público...</p>
       </section>
     );
@@ -53,14 +53,14 @@ const CompanyPublic = () => {
 
   if (error || !company) {
     return (
-      <section className="mx-auto max-w-5xl px-4 py-16">
+      <section className="mx-auto max-w-5xl px-4 py-8">
         <p className="rounded-3xl bg-red-50 px-6 py-4 text-center text-red-600">{error ?? 'Empresa no encontrada'}</p>
       </section>
     );
   }
 
   return (
-    <section className="mx-auto max-w-5xl px-4 py-16">
+    <section className="mx-auto max-w-5xl px-4 py-8">
       <div className="rounded-3xl border border-white/40 bg-white/80 p-8 shadow-2xl backdrop-blur">
         <div className="flex flex-col items-start gap-6 md:flex-row md:items-center">
           {company.logo_url ? (

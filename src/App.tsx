@@ -71,7 +71,7 @@ const App = () => {
       {/* Only show loading if we truly have no auth data */}
       <LoadingOverlay isLoading={loading && !profile} />
 
-      <main className="pt-24">
+      <main className="pt-20">
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Navigate to="/inicio" replace />} />

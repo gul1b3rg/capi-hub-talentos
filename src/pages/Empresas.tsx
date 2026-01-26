@@ -81,7 +81,7 @@ const Empresas = () => {
   }, [loadingMore, hasMore, debouncedSearch, page]);
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16">
+    <section className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-10 text-center">
         <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">Directorio</p>
         <h1 className="mt-2 text-4xl font-semibold text-secondary">Empresas en la plataforma</h1>

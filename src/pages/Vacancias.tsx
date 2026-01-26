@@ -111,7 +111,7 @@ const Vacancias = () => {
   }, [loadingMore, hasMore, filters, debouncedSearch, page]);
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16">
+    <section className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-10 text-center">
         <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">Vacancias activas</p>
         <h1 className="mt-2 text-4xl font-semibold text-secondary">Explora oportunidades curadas</h1>

@@ -79,7 +79,7 @@ const JobEdit = () => {
 
   if (loading) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-16">
+      <section className="mx-auto max-w-4xl px-4 py-8">
         <p className="text-center text-secondary/70">Cargando vacancia...</p>
       </section>
     );
@@ -87,7 +87,7 @@ const JobEdit = () => {
 
   if (error) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-16">
+      <section className="mx-auto max-w-4xl px-4 py-8">
         <p className="rounded-3xl bg-red-50 px-6 py-4 text-center text-red-600">{error}</p>
       </section>
     );
@@ -96,7 +96,7 @@ const JobEdit = () => {
   if (!initialValues) return null;
 
   return (
-    <section className="mx-auto max-w-4xl px-4 py-16">
+    <section className="mx-auto max-w-4xl px-4 py-8">
       <div className="rounded-3xl border border-white/40 bg-white/90 p-8 shadow-2xl backdrop-blur">
         <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">Editar vacancia</p>
         <h1 className="mt-2 text-3xl font-semibold text-secondary">Actualiza los detalles y república</h1>

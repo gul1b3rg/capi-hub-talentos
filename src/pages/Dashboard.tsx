@@ -57,7 +57,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <section className="mx-auto max-w-6xl px-4 py-16">
+      <section className="mx-auto max-w-6xl px-4 py-8">
         <p className="text-center text-secondary/70">Preparando tu panel...</p>
       </section>
     );
@@ -65,7 +65,7 @@ const Dashboard = () => {
 
   if (error) {
     return (
-      <section className="mx-auto max-w-6xl px-4 py-16">
+      <section className="mx-auto max-w-6xl px-4 py-8">
         <p className="rounded-3xl bg-red-50 px-6 py-4 text-center text-red-600">{error}</p>
       </section>
     );
@@ -73,7 +73,7 @@ const Dashboard = () => {
 
   if (!company) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-16">
+      <section className="mx-auto max-w-4xl px-4 py-8">
         <div className="rounded-3xl border border-dashed border-secondary/30 bg-white/60 p-10 text-center shadow-xl">
           <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">Dashboard</p>
           <h1 className="mt-3 text-3xl font-semibold text-secondary">Configura tu empresa para comenzar</h1>
@@ -92,7 +92,7 @@ const Dashboard = () => {
   }
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16">
+    <section className="mx-auto max-w-6xl px-4 py-8">
       <div className="rounded-[32px] border border-white/40 bg-white/80 p-10 shadow-2xl backdrop-blur">
         <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">Bienvenida</p>
         <h1 className="mt-2 text-4xl font-semibold text-secondary">

@@ -77,7 +77,7 @@ const JobDetail = () => {
 
   if (loading) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-16">
+      <section className="mx-auto max-w-4xl px-4 py-8">
         <p className="text-center text-secondary/70">Cargando vacancia...</p>
       </section>
     );
@@ -85,7 +85,7 @@ const JobDetail = () => {
 
   if (error || !job) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-16">
+      <section className="mx-auto max-w-4xl px-4 py-8">
         <p className="rounded-3xl bg-red-50 px-6 py-4 text-center text-red-600">{error ?? 'Vacancia no encontrada'}</p>
       </section>
     );
@@ -94,7 +94,7 @@ const JobDetail = () => {
   const isOwner = role === 'empresa' && job.company?.owner_id === user?.id;
 
   return (
-    <section className="mx-auto max-w-4xl px-4 py-16">
+    <section className="mx-auto max-w-4xl px-4 py-8">
       <div className="rounded-3xl border border-white/40 bg-white/90 p-8 shadow-2xl backdrop-blur">
         <div className="flex flex-col gap-6">
           {/* Header con logo y acciones */}

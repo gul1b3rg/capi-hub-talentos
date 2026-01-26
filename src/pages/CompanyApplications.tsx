@@ -87,7 +87,7 @@ const CompanyApplications = () => {
 
   if (loading) {
     return (
-      <section className="mx-auto max-w-6xl px-4 py-16">
+      <section className="mx-auto max-w-6xl px-4 py-8">
         <p className="text-center text-secondary/70">Cargando postulaciones...</p>
       </section>
     );
@@ -95,7 +95,7 @@ const CompanyApplications = () => {
 
   if (error) {
     return (
-      <section className="mx-auto max-w-6xl px-4 py-16">
+      <section className="mx-auto max-w-6xl px-4 py-8">
         <p className="rounded-3xl bg-red-50 px-6 py-4 text-center text-red-600">
           {error}
         </p>
@@ -104,7 +104,7 @@ const CompanyApplications = () => {
   }
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16">
+    <section className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-8">
         <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">
           Gestión de Postulaciones

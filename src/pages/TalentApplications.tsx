@@ -39,7 +39,7 @@ const TalentApplications = () => {
 
   if (loading) {
     return (
-      <section className="mx-auto max-w-5xl px-4 py-16">
+      <section className="mx-auto max-w-5xl px-4 py-8">
         <p className="text-center text-secondary/70">Cargando postulaciones...</p>
       </section>
     );
@@ -47,7 +47,7 @@ const TalentApplications = () => {
 
   if (error) {
     return (
-      <section className="mx-auto max-w-5xl px-4 py-16">
+      <section className="mx-auto max-w-5xl px-4 py-8">
         <p className="rounded-3xl bg-red-50 px-6 py-4 text-center text-red-600">
           {error}
         </p>
@@ -56,7 +56,7 @@ const TalentApplications = () => {
   }
 
   return (
-    <section className="mx-auto max-w-5xl px-4 py-16">
+    <section className="mx-auto max-w-5xl px-4 py-8">
       <div className="mb-10 text-center">
         <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">
           Mis Postulaciones

@@ -81,7 +81,7 @@ const Talentos = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background py-24">
+    <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4">
         {/* Header */}
         <header className="mb-12 text-center">
