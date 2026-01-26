@@ -12,7 +12,7 @@ import ProgressBar from '../components/ProgressBar';
 import FileUploadPreview from '../components/FileUploadPreview';
 
 const experienceRanges = ['0-1 años', '1-3 años', '3-5 años', '5-8 años', '8+ años'];
-const areaOptions = ['Siniestros', 'Comercial', 'TI', 'Reaseguro', 'Innovación', 'Operaciones', 'Legal', 'Finanzas'];
+const areaOptions = ['Siniestros', 'Comercial', 'TI', 'Reaseguro', 'Innovación', 'Operaciones', 'Legal', 'Finanzas', 'Otro'];
 
 const TalentProfile = () => {
   const { user, profile, refreshProfile, loading } = useCurrentProfile();
@@ -45,15 +45,20 @@ const TalentProfile = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [linkedinUsername, setLinkedinUsername] = useState('');
   const [viewCount, setViewCount] = useState<ProfileViewCount>({ total: 0, lastWeek: 0 });
+  const [areaOther, setAreaOther] = useState('');
 
   useEffect(() => {
     if (profile) {
+      const savedArea = (profile as any).area ?? '';
+      // Detectar si el área guardada es una personalizada (no está en la lista predefinida)
+      const isCustomArea = savedArea && !areaOptions.includes(savedArea);
+
       setForm({
         full_name: profile.full_name ?? '',
         headline: profile.headline ?? '',
         location: profile.location ?? '',
         experience_years: (profile as any).experience_years ?? '',
-        area: (profile as any).area ?? '',
+        area: isCustomArea ? 'Otro' : savedArea,
         availability: (profile as any).availability ?? '',
         linkedin_url: (profile as any).linkedin_url ?? '',
         cv_url: (profile as any).cv_url ?? '',
@@ -61,6 +66,11 @@ const TalentProfile = () => {
         is_public_profile: Boolean((profile as any).is_public_profile ?? true),
         current_company: (profile as any).current_company ?? '',
       });
+
+      // Si es área personalizada, guardar en el campo de texto
+      if (isCustomArea) {
+        setAreaOther(savedArea);
+      }
 
       // Extraer username de LinkedIn URL si existe
       const linkedinUrl = (profile as any).linkedin_url ?? '';
@@ -231,12 +241,15 @@ const TalentProfile = () => {
         setUploadState((prev) => ({ ...prev, status: 'success', progress: 100 }));
       }
 
+      // Si el área es "Otro", usar el valor personalizado
+      const finalArea = form.area === 'Otro' ? (areaOther || null) : (form.area || null);
+
       await updateProfile(user.id, {
         full_name: form.full_name,
         headline: form.headline || null,
         location: form.location || null,
         experience_years: form.experience_years || null,
-        area: form.area || null,
+        area: finalArea,
         availability: form.availability || null,
         linkedin_url: form.linkedin_url || null,
         cv_url: cvUrl,
@@ -385,7 +398,9 @@ const TalentProfile = () => {
               </div>
               <div>
                 <p className="text-sm font-semibold text-secondary">Área</p>
-                <p className="mt-1 text-secondary/70">{form.area || 'No especificada'}</p>
+                <p className="mt-1 text-secondary/70">
+                  {form.area === 'Otro' ? (areaOther || 'No especificada') : (form.area || 'No especificada')}
+                </p>
               </div>
               <div>
                 <p className="text-sm font-semibold text-secondary">Disponibilidad</p>
@@ -479,7 +494,13 @@ const TalentProfile = () => {
               <select
                 className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
                 value={form.area}
-                onChange={(event) => handleChange('area', event.target.value)}
+                onChange={(event) => {
+                  handleChange('area', event.target.value);
+                  // Limpiar área personalizada si cambia de "Otro"
+                  if (event.target.value !== 'Otro') {
+                    setAreaOther('');
+                  }
+                }}
               >
                 <option value="">Seleccionar</option>
                 {areaOptions.map((item) => (
@@ -489,6 +510,18 @@ const TalentProfile = () => {
                 ))}
               </select>
             </label>
+            {form.area === 'Otro' && (
+              <label className="text-sm font-medium text-secondary">
+                Especificar área
+                <input
+                  type="text"
+                  className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  placeholder="Ej. Recursos Humanos, Marketing, etc."
+                  value={areaOther}
+                  onChange={(event) => setAreaOther(event.target.value)}
+                />
+              </label>
+            )}
             <label className="text-sm font-medium text-secondary">
               Disponibilidad (opcional)
               <input
@@ -632,14 +665,6 @@ const TalentProfile = () => {
                 </a>
               )}
             </div>
-            <label className="flex items-center gap-2 text-sm text-secondary">
-              <input
-                type="checkbox"
-                checked={form.is_public_profile}
-                onChange={(event) => handleChange('is_public_profile', event.target.checked)}
-              />
-              Hacer visible mi perfil a empresas (cuando lancemos el directorio)
-            </label>
           </div>
 
           {error && <p className="rounded-2xl bg-red-50 px-4 py-2 text-sm text-red-600">{error}</p>}
@@ -654,12 +679,14 @@ const TalentProfile = () => {
                 setAvatarPreview(null);
                 // Restaurar valores del profile
                 if (profile) {
+                  const savedArea = (profile as any).area ?? '';
+                  const isCustomArea = savedArea && !areaOptions.includes(savedArea);
                   setForm({
                     full_name: profile.full_name ?? '',
                     headline: profile.headline ?? '',
                     location: profile.location ?? '',
                     experience_years: (profile as any).experience_years ?? '',
-                    area: (profile as any).area ?? '',
+                    area: isCustomArea ? 'Otro' : savedArea,
                     availability: (profile as any).availability ?? '',
                     linkedin_url: (profile as any).linkedin_url ?? '',
                     cv_url: (profile as any).cv_url ?? '',
@@ -667,6 +694,7 @@ const TalentProfile = () => {
                     is_public_profile: Boolean((profile as any).is_public_profile ?? true),
                     current_company: (profile as any).current_company ?? '',
                   });
+                  setAreaOther(isCustomArea ? savedArea : '');
                 }
               }}
               className="w-1/3 rounded-2xl border-2 border-secondary/20 px-6 py-3 font-semibold text-secondary transition hover:border-secondary/40 hover:bg-secondary/5"
