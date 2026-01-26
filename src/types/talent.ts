@@ -10,7 +10,7 @@ export interface PublicTalentProfile {
   area: string | null;
   experience_years: string | null;
   availability: string | null;
-  avatar_url: string; // REQUIRED para aparecer en galería
+  avatar_url: string | null;
   linkedin_url: string | null;
   current_company: string | null;
   web_url: string | null;

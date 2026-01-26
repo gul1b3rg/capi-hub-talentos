@@ -6,6 +6,18 @@ interface TalentCardProps {
   talent: PublicTalentProfile;
 }
 
+/**
+ * Genera iniciales de un nombre (máximo 2 letras)
+ * Ejemplo: "Analia Ramirez" -> "AR", "Juan" -> "J"
+ */
+const getInitials = (name: string): string => {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) {
+    return parts[0].charAt(0).toUpperCase();
+  }
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+};
+
 const TalentCard = ({ talent }: TalentCardProps) => {
   const navigate = useNavigate();
 
@@ -25,12 +37,18 @@ const TalentCard = ({ talent }: TalentCardProps) => {
       {/* Avatar */}
       <div className="flex justify-center mb-4">
         <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg">
-          <img
-            src={talent.avatar_url}
-            alt={talent.full_name}
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
+          {talent.avatar_url ? (
+            <img
+              src={talent.avatar_url}
+              alt={talent.full_name}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-primary/80 to-secondary/80 text-white text-2xl font-bold">
+              {getInitials(talent.full_name)}
+            </div>
+          )}
         </div>
       </div>
 

@@ -28,8 +28,7 @@ export const fetchPublicTalents = async (
       created_at
     `)
     .eq('role', 'talento')
-    .eq('is_public_profile', true)
-    .not('avatar_url', 'is', null); // REQUIRED: must have avatar
+    .eq('is_public_profile', true);
 
   // Aplicar filtro de búsqueda (nombre o headline)
   if (filters.search.trim()) {
