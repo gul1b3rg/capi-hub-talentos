@@ -28,6 +28,7 @@ export interface Profile {
   is_public_profile?: boolean | null;
   avatar_url?: string | null;
   linkedin_id?: string | null;
+  current_company?: string | null;
   created_at: string;
 }
 

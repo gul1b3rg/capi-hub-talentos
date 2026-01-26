@@ -23,6 +23,7 @@ export const fetchPublicTalents = async (
       availability,
       avatar_url,
       linkedin_url,
+      current_company,
       created_at
     `)
     .eq('role', 'talento')

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FaEye } from 'react-icons/fa';
 import { useCurrentProfile } from '../context/AuthContext';
-import { isProfileReadyForApplication, updateProfile, updateProfileAvatar } from '../lib/profileService';
+import { updateProfile, updateProfileAvatar } from '../lib/profileService';
 import { uploadCvFile, uploadAvatarFromFile } from '../lib/storageService';
 import { linkLinkedInAccount } from '../lib/linkedInAuthService';
 import { validateCvFile } from '../lib/fileValidation';
@@ -28,6 +28,7 @@ const TalentProfile = () => {
     cv_url: '',
     avatar_url: '',
     is_public_profile: true,
+    current_company: '',
   });
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -58,6 +59,7 @@ const TalentProfile = () => {
         cv_url: (profile as any).cv_url ?? '',
         avatar_url: (profile as any).avatar_url ?? '',
         is_public_profile: Boolean((profile as any).is_public_profile ?? true),
+        current_company: (profile as any).current_company ?? '',
       });
 
       // Extraer username de LinkedIn URL si existe
@@ -239,6 +241,7 @@ const TalentProfile = () => {
         linkedin_url: form.linkedin_url || null,
         cv_url: cvUrl,
         is_public_profile: form.is_public_profile,
+        current_company: form.current_company || null,
       } as any);
 
       await refreshProfile(user.id);
@@ -294,8 +297,6 @@ const TalentProfile = () => {
     );
   }
 
-  const ready = isProfileReadyForApplication({ ...profile, cv_url: form.cv_url } as any);
-
   return (
     <section className="mx-auto max-w-4xl px-4 py-16">
       <div className="rounded-3xl border border-white/40 bg-white/90 p-8 shadow-2xl backdrop-blur">
@@ -306,15 +307,8 @@ const TalentProfile = () => {
               {isEditing ? 'Editar perfil' : form.full_name || 'Tu Perfil'}
             </h1>
             <p className="mt-1 text-secondary/70">
-              {isEditing ? 'Actualiza tu información para postulaciones' : form.headline || 'Especialista en seguros'}
+              {isEditing ? 'Actualiza tu información' : form.headline || 'Especialista en seguros'}
             </p>
-            <div className="mt-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
-              {ready ? (
-                <span className="rounded-full bg-green-100 px-3 py-1 text-green-700">Listo para postular</span>
-              ) : (
-                <span className="rounded-full bg-yellow-100 px-3 py-1 text-yellow-700">Faltan datos clave</span>
-              )}
-            </div>
           </div>
           {!isEditing && (
             <button
@@ -397,6 +391,12 @@ const TalentProfile = () => {
                 <p className="text-sm font-semibold text-secondary">Disponibilidad</p>
                 <p className="mt-1 text-secondary/70">{form.availability || 'No especificada'}</p>
               </div>
+              {form.current_company && (
+                <div>
+                  <p className="text-sm font-semibold text-secondary">Empresa actual</p>
+                  <p className="mt-1 text-secondary/70">{form.current_company}</p>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-wrap gap-3">
@@ -421,15 +421,6 @@ const TalentProfile = () => {
                 </a>
               )}
             </div>
-
-            {!ready && (
-              <div className="rounded-2xl border border-yellow-200 bg-yellow-50 p-4">
-                <p className="text-sm font-semibold text-yellow-800">Completa tu perfil</p>
-                <p className="mt-1 text-sm text-yellow-700">
-                  Para poder postular a vacancias, necesitas completar todos los campos obligatorios y subir tu CV.
-                </p>
-              </div>
-            )}
           </div>
         )}
 
@@ -506,6 +497,16 @@ const TalentProfile = () => {
                 placeholder="Ej. Inmediata, 30 días"
                 value={form.availability}
                 onChange={(event) => handleChange('availability', event.target.value)}
+              />
+            </label>
+            <label className="text-sm font-medium text-secondary">
+              Empresa actual (opcional)
+              <input
+                type="text"
+                className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                placeholder="Nombre de la empresa donde trabajas"
+                value={form.current_company}
+                onChange={(event) => handleChange('current_company', event.target.value)}
               />
             </label>
             <label className="text-sm font-medium text-secondary">
@@ -664,6 +665,7 @@ const TalentProfile = () => {
                     cv_url: (profile as any).cv_url ?? '',
                     avatar_url: (profile as any).avatar_url ?? '',
                     is_public_profile: Boolean((profile as any).is_public_profile ?? true),
+                    current_company: (profile as any).current_company ?? '',
                   });
                 }
               }}

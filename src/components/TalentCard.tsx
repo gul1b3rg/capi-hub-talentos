@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { FaLinkedin, FaMapMarkerAlt, FaBriefcase, FaEye } from 'react-icons/fa';
+import { FaLinkedin, FaMapMarkerAlt, FaBriefcase, FaEye, FaBuilding } from 'react-icons/fa';
 import type { PublicTalentProfile } from '../types/talent';
 
 interface TalentCardProps {
@@ -63,6 +63,14 @@ const TalentCard = ({ talent }: TalentCardProps) => {
             <span className="truncate">
               {[talent.area, talent.experience_years].filter(Boolean).join(' • ')}
             </span>
+          </div>
+        )}
+
+        {/* Empresa actual */}
+        {talent.current_company && (
+          <div className="flex items-center gap-2 text-sm text-secondary/70">
+            <FaBuilding className="flex-shrink-0" />
+            <span className="truncate">{talent.current_company}</span>
           </div>
         )}
       </div>
