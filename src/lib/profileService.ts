@@ -68,7 +68,7 @@ export const isProfileReadyForApplication = (profile: Profile | null) => {
 export const fetchPublicTalentProfile = async (talentId: string): Promise<Profile> => {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, full_name, headline, location, experience_years, area, availability, linkedin_url, cv_url, is_public_profile, role, avatar_url, current_company')
+    .select('id, full_name, headline, location, experience_years, area, availability, linkedin_url, cv_url, is_public_profile, role, avatar_url, current_company, web_url')
     .eq('id', talentId)
     .eq('role', 'talento')
     .single();

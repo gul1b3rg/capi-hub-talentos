@@ -29,6 +29,7 @@ export interface Profile {
   avatar_url?: string | null;
   linkedin_id?: string | null;
   current_company?: string | null;
+  web_url?: string | null;
   created_at: string;
 }
 

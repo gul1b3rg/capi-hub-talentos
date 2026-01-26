@@ -29,6 +29,7 @@ const TalentProfile = () => {
     avatar_url: '',
     is_public_profile: true,
     current_company: '',
+    web_url: '',
   });
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -65,6 +66,7 @@ const TalentProfile = () => {
         avatar_url: (profile as any).avatar_url ?? '',
         is_public_profile: Boolean((profile as any).is_public_profile ?? true),
         current_company: (profile as any).current_company ?? '',
+        web_url: (profile as any).web_url ?? '',
       });
 
       // Si es área personalizada, guardar en el campo de texto
@@ -255,6 +257,7 @@ const TalentProfile = () => {
         cv_url: cvUrl,
         is_public_profile: form.is_public_profile,
         current_company: form.current_company || null,
+        web_url: form.web_url || null,
       } as any);
 
       await refreshProfile(user.id);
@@ -435,6 +438,16 @@ const TalentProfile = () => {
                   Ver LinkedIn
                 </a>
               )}
+              {form.web_url && (
+                <a
+                  href={form.web_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full bg-secondary/10 px-5 py-2 text-sm font-semibold text-secondary hover:bg-secondary/20"
+                >
+                  Sitio web
+                </a>
+              )}
             </div>
           </div>
         )}
@@ -559,6 +572,16 @@ const TalentProfile = () => {
                   URL: {form.linkedin_url}
                 </p>
               )}
+            </label>
+            <label className="text-sm font-medium text-secondary">
+              Sitio web / Portfolio (opcional)
+              <input
+                type="url"
+                className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                placeholder="https://mi-sitio.com o portfolio"
+                value={form.web_url}
+                onChange={(event) => handleChange('web_url', event.target.value)}
+              />
             </label>
             <label className="text-sm font-medium text-secondary">
               CV (URL)
@@ -693,6 +716,7 @@ const TalentProfile = () => {
                     avatar_url: (profile as any).avatar_url ?? '',
                     is_public_profile: Boolean((profile as any).is_public_profile ?? true),
                     current_company: (profile as any).current_company ?? '',
+                    web_url: (profile as any).web_url ?? '',
                   });
                   setAreaOther(isCustomArea ? savedArea : '');
                 }

@@ -13,6 +13,7 @@ export interface PublicTalentProfile {
   avatar_url: string; // REQUIRED para aparecer en galería
   linkedin_url: string | null;
   current_company: string | null;
+  web_url: string | null;
   created_at: string;
 
   // Métricas de popularidad (joins con talent_popularity)
