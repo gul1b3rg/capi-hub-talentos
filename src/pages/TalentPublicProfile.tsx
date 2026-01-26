@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { FaEye, FaLinkedin } from 'react-icons/fa';
+import { FaEye, FaLinkedin, FaBuilding } from 'react-icons/fa';
 import { useCurrentProfile } from '../context/AuthContext';
 import { fetchPublicTalentProfile } from '../lib/profileService';
 import { incrementProfileView, getProfileViewCount } from '../lib/talentService';
@@ -130,6 +130,16 @@ const TalentPublicProfile = () => {
             <div>
               <p className="text-sm font-semibold text-secondary">Disponibilidad</p>
               <p className="text-secondary/70">{talent.availability}</p>
+            </div>
+          )}
+
+          {talent.current_company && (
+            <div>
+              <p className="text-sm font-semibold text-secondary">Empresa actual</p>
+              <p className="flex items-center gap-2 text-secondary/70">
+                <FaBuilding className="text-secondary/40" />
+                {talent.current_company}
+              </p>
             </div>
           )}
         </div>
