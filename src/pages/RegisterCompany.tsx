@@ -25,16 +25,17 @@ const RegisterCompany = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Redirigir si ya está autenticado
+  // Redirigir solo si ya es empresa
   useEffect(() => {
-    if (!authLoading && user && profile) {
-      if (profile.role === 'empresa') {
-        navigate('/dashboard', { replace: true });
-      } else {
-        navigate('/mi-perfil', { replace: true });
-      }
+    if (!authLoading && user && profile && profile.role === 'empresa') {
+      navigate('/dashboard', { replace: true });
     }
   }, [authLoading, user, profile, navigate]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    // La página se actualizará automáticamente
+  };
 
   // Mostrar loading mientras verifica sesión
   if (authLoading) {
@@ -45,9 +46,29 @@ const RegisterCompany = () => {
     );
   }
 
-  // Si ya está autenticado, no mostrar nada (se redirigirá)
-  if (user && profile) {
-    return null;
+  // Si es talento, mostrar mensaje para cerrar sesión
+  if (user && profile && profile.role === 'talento') {
+    return (
+      <AuthLayout
+        title="Registrar Empresa"
+        subtitle="Crear cuenta para publicar vacancias"
+      >
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-secondary">
+            Actualmente tenés una sesión activa como <strong>talento</strong>.
+          </p>
+          <p className="mt-2 text-secondary/70">
+            Para registrar una empresa, primero debés cerrar tu sesión actual.
+          </p>
+          <button
+            onClick={handleLogout}
+            className="mt-4 rounded-2xl bg-secondary px-6 py-3 font-semibold text-white transition hover:bg-secondary/90"
+          >
+            Cerrar sesión y continuar
+          </button>
+        </div>
+      </AuthLayout>
+    );
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
