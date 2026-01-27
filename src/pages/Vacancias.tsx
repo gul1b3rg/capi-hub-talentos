@@ -130,7 +130,7 @@ const Vacancias = () => {
           <p>No encontramos vacancias que coincidan con tus filtros. Volvé pronto para ver nuevas oportunidades.</p>
           <p className="mt-3">
             ¿Tu empresa o aseguradora busca contratar talento?{' '}
-            <Link to="/registro-empresa" className="font-semibold text-primary hover:underline">
+            <Link to="/register-company" className="font-semibold text-primary hover:underline">
               Registrate aquí
             </Link>{' '}
             y publicá una vacancia.
