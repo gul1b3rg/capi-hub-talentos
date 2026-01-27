@@ -6,6 +6,7 @@
   { label: 'Publicar', path: '/publicar' },
   { label: 'Dashboard', path: '/dashboard' },
   { label: 'Consultorías', path: '/consultorias' },
+  { label: 'Educación', path: '/educacion' },
 ];
 
 export const heroProfiles = [

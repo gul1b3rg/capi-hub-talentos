@@ -18,6 +18,7 @@ import RegisterCompany from './pages/RegisterCompany';
 const Empresas = lazy(() => import('./pages/Empresas'));
 const Talentos = lazy(() => import('./pages/Talentos'));
 const Consultorias = lazy(() => import('./pages/Consultorias'));
+const Educacion = lazy(() => import('./pages/Educacion'));
 const CompanyPublic = lazy(() => import('./pages/CompanyPublic'));
 const TalentPublicProfile = lazy(() => import('./pages/TalentPublicProfile'));
 const JobDetail = lazy(() => import('./pages/JobDetail'));
@@ -87,6 +88,7 @@ const App = () => {
           <Route path="/empresas" element={<Empresas />} />
           <Route path="/talentos" element={<Talentos />} />
           <Route path="/consultorias" element={<Consultorias />} />
+          <Route path="/educacion" element={<Educacion />} />
           <Route path="/vacancia/:id" element={<JobDetail />} />
 
           {/* Rutas protegidas - Requieren login (cualquier rol) */}
