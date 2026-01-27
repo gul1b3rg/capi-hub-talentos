@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import JobCard from '../components/JobCard';
 import JobListFilters from '../components/JobListFilters';
 import InfiniteScrollTrigger from '../components/InfiniteScrollTrigger';
@@ -125,9 +126,16 @@ const Vacancias = () => {
       ) : error ? (
         <p className="mt-10 rounded-3xl bg-red-50 px-6 py-4 text-center text-red-600">{error}</p>
       ) : jobs.length === 0 ? (
-        <p className="mt-10 rounded-3xl border border-dashed border-secondary/30 px-6 py-8 text-center text-secondary/60">
-          No encontramos vacancias que coincidan con tus filtros. Ajusta los criterios para ver nuevas opciones.
-        </p>
+        <div className="mt-10 rounded-3xl border border-dashed border-secondary/30 px-6 py-8 text-center text-secondary/60">
+          <p>No encontramos vacancias que coincidan con tus filtros. Volvé pronto para ver nuevas oportunidades.</p>
+          <p className="mt-3">
+            ¿Tu empresa o aseguradora busca contratar talento?{' '}
+            <Link to="/registro-empresa" className="font-semibold text-primary hover:underline">
+              Registrate aquí
+            </Link>{' '}
+            y publicá una vacancia.
+          </p>
+        </div>
       ) : (
         <>
           <div className="mt-10 grid gap-5">
