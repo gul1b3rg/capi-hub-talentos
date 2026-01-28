@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { FaSearch } from 'react-icons/fa';
 import CompanyCard from '../components/CompanyCard';
 import InfiniteScrollTrigger from '../components/InfiniteScrollTrigger';
@@ -86,6 +87,13 @@ const Empresas = () => {
         <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">Directorio</p>
         <h1 className="mt-2 text-4xl font-semibold text-secondary">Empresas en la plataforma</h1>
         <p className="text-secondary/70">Descubre las aseguradoras y empresas que están conectadas en el sector asegurador.</p>
+        <p className="mt-3 text-sm text-secondary/60">
+          ¿No encontrás tu empresa o aseguradora?{' '}
+          <Link to="/register-company" className="font-semibold text-primary hover:underline">
+            Registrate gratis
+          </Link>{' '}
+          y presentate a todo el mercado asegurador.
+        </p>
       </div>
 
       {/* Barra de búsqueda */}

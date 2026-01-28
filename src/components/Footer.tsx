@@ -1,4 +1,5 @@
 ﻿import { FaInstagram, FaLinkedin } from "react-icons/fa";
+import { Link } from 'react-router-dom';
 
 const capiLogo =
   'https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,h=382,fit=crop/YD0l15PzbesbNaj0/logotipo-1-mxBrqn9JGlUE70lX.png';
@@ -36,8 +37,21 @@ const Footer = () => (
         </a>
       </div>
     </div>
+    <div className="border-t border-white/10">
+      <div className="mx-auto max-w-6xl px-4 py-4 text-center">
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-white/70">
+          <Link to="/terminos-y-condiciones" className="hover:text-white transition">
+            Términos y Condiciones
+          </Link>
+          <span className="hidden sm:inline">·</span>
+          <Link to="/politica-de-privacidad" className="hover:text-white transition">
+            Política de Privacidad
+          </Link>
+        </div>
+      </div>
+    </div>
     <div className="border-t border-white/10 py-6 text-center text-xs text-white/70">
-      Cámara Paraguaya de Insurtech · 2025 · Impulsando la innovación en seguros.
+      Cámara Paraguaya de Insurtech · 2026 · Impulsando la innovación en seguros.
     </div>
   </footer>
 );

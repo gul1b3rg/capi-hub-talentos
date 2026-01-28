@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import AuthLayout from '../components/AuthLayout';
 import LinkedInButton from '../components/LinkedInButton';
@@ -22,6 +22,7 @@ const RegisterTalent = () => {
     location: '',
     headline: '',
   });
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [linkedInError, setLinkedInError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -56,6 +57,12 @@ const RegisterTalent = () => {
     event.preventDefault();
     setError(null);
     setSuccess(null);
+
+    // Validar aceptación de términos
+    if (!acceptedTerms) {
+      setError('Debes aceptar los Términos y Condiciones y la Política de Privacidad para continuar.');
+      return;
+    }
 
     // Validar formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -223,6 +230,28 @@ const RegisterTalent = () => {
             onChange={(event) => setForm((prev) => ({ ...prev, headline: event.target.value }))}
           />
         </label>
+
+        <div className="flex items-start gap-2">
+          <input
+            type="checkbox"
+            id="acceptTerms"
+            checked={acceptedTerms}
+            onChange={(e) => setAcceptedTerms(e.target.checked)}
+            className="mt-1 h-4 w-4 rounded border-secondary/30 text-primary focus:ring-2 focus:ring-primary/30"
+            required
+          />
+          <label htmlFor="acceptTerms" className="text-sm text-secondary/70">
+            Acepto los{' '}
+            <Link to="/terminos-y-condiciones" target="_blank" className="text-primary hover:underline">
+              Términos y Condiciones
+            </Link>{' '}
+            y la{' '}
+            <Link to="/politica-de-privacidad" target="_blank" className="text-primary hover:underline">
+              Política de Privacidad
+            </Link>
+          </label>
+        </div>
+
         {error && <p className="rounded-2xl bg-red-50 px-4 py-2 text-sm text-red-600">{error}</p>}
         {success && <p className="rounded-2xl bg-green-50 px-4 py-2 text-sm text-green-700">{success}</p>}
         <button

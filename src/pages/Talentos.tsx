@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import TalentCard from '../components/TalentCard';
 import TalentListFilters from '../components/TalentListFilters';
 import InfiniteScrollTrigger from '../components/InfiniteScrollTrigger';
@@ -98,15 +99,24 @@ const Talentos = () => {
 
         {/* Stats */}
         {!loading && !error && (
-          <div className="mb-6 text-center text-sm text-secondary/70">
-            {talents.length > 0 ? (
-              <>
-                Mostrando {talents.length} talento{talents.length !== 1 ? 's' : ''}
-                {hasMore && ' (carga más abajo para ver más)'}
-              </>
-            ) : (
-              'No se encontraron talentos'
-            )}
+          <div className="mb-6 text-center">
+            <div className="text-sm text-secondary/70">
+              {talents.length > 0 ? (
+                <>
+                  Mostrando {talents.length} talento{talents.length !== 1 ? 's' : ''}
+                  {hasMore && ' (carga más abajo para ver más)'}
+                </>
+              ) : (
+                'No se encontraron talentos'
+              )}
+            </div>
+            <p className="mt-2 text-sm text-secondary/60">
+              ¿No encontrás tu perfil?{' '}
+              <Link to="/register-talent" className="font-semibold text-primary hover:underline">
+                Registrate gratis
+              </Link>{' '}
+              y dá a conocer tu talento al sector asegurador.
+            </p>
           </div>
         )}
 
@@ -189,10 +199,17 @@ const Talentos = () => {
               />
             )}
 
-            {/* End message */}
+            {/* End message + Registration CTA */}
             {!hasMore && talents.length > 0 && (
-              <div className="mt-8 text-center text-sm text-secondary/60">
-                Has visto todos los talentos disponibles
+              <div className="mt-10 rounded-3xl border border-dashed border-secondary/30 px-6 py-8 text-center">
+                <p className="text-secondary/60">Has visto todos los talentos disponibles</p>
+                <p className="mt-3 text-secondary">
+                  ¿Sos profesional del sector asegurador?{' '}
+                  <Link to="/register-talent" className="font-semibold text-primary hover:underline">
+                    Creá tu perfil gratis
+                  </Link>{' '}
+                  y conectá con empresas que buscan tu talento.
+                </p>
               </div>
             )}
           </>
