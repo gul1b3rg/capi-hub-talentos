@@ -4,11 +4,14 @@ import TalentCard from '../components/TalentCard';
 import TalentListFilters from '../components/TalentListFilters';
 import InfiniteScrollTrigger from '../components/InfiniteScrollTrigger';
 import { fetchPublicTalents } from '../lib/talentService';
+import { useCurrentProfile } from '../context/AuthContext';
 import type { PublicTalentProfile, TalentFilters } from '../types/talent';
 
 const TALENTS_PER_PAGE = 20;
+const MAX_TALENTS_UNAUTHENTICATED = 3; // Limit for non-authenticated users
 
 const Talentos = () => {
+  const { user } = useCurrentProfile(); // Detect if user is authenticated
   const [talents, setTalents] = useState<PublicTalentProfile[]>([]);
   const [filters, setFilters] = useState<TalentFilters>({
     search: '',
@@ -184,14 +187,55 @@ const Talentos = () => {
         {/* Grid de talentos */}
         {!loading && !error && talents.length > 0 && (
           <>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {talents.map((talent) => (
-                <TalentCard key={talent.id} talent={talent} />
-              ))}
+            {/* Container with relative positioning for gradient overlay */}
+            <div className="relative">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {/* Show only first 3 talents for non-authenticated users */}
+                {(user ? talents : talents.slice(0, MAX_TALENTS_UNAUTHENTICATED)).map((talent) => (
+                  <TalentCard key={talent.id} talent={talent} />
+                ))}
+              </div>
+
+              {/* Gradient fade overlay for non-authenticated users */}
+              {!user && talents.length > MAX_TALENTS_UNAUTHENTICATED && (
+                <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-background via-background/95 to-transparent" />
+              )}
             </div>
 
-            {/* Infinite scroll trigger */}
-            {hasMore && (
+            {/* Registration CTA for non-authenticated users */}
+            {!user && talents.length > MAX_TALENTS_UNAUTHENTICATED && (
+              <div className="relative z-10 mt-8 rounded-3xl border-2 border-primary/30 bg-white/95 px-8 py-12 text-center shadow-2xl backdrop-blur-xl">
+                <h3 className="text-2xl font-bold text-secondary">
+                  Descubrí más talentos del sector asegurador
+                </h3>
+                <p className="mt-4 text-lg text-secondary/70">
+                  Registrate gratis para ver el directorio completo de {talents.length} profesionales
+                </p>
+                <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                  <Link
+                    to="/register-talent"
+                    className="rounded-full bg-secondary px-8 py-4 font-semibold text-white shadow-lg transition hover:bg-secondary/90 hover:shadow-xl"
+                  >
+                    Registrarme como Talento
+                  </Link>
+                  <Link
+                    to="/login"
+                    className="rounded-full border-2 border-secondary/30 bg-white px-8 py-4 font-semibold text-secondary transition hover:border-secondary hover:bg-secondary/5"
+                  >
+                    Ya tengo cuenta
+                  </Link>
+                </div>
+                <p className="mt-6 text-sm text-secondary/60">
+                  ¿Buscás talento para tu empresa?{' '}
+                  <Link to="/register-company" className="font-semibold text-primary hover:underline">
+                    Registra tu empresa aquí
+                  </Link>
+                </p>
+              </div>
+            )}
+
+            {/* Infinite scroll trigger (only for authenticated users) */}
+            {user && hasMore && (
               <InfiniteScrollTrigger
                 onLoadMore={handleLoadMore}
                 hasMore={hasMore}
@@ -199,8 +243,8 @@ const Talentos = () => {
               />
             )}
 
-            {/* End message + Registration CTA */}
-            {!hasMore && talents.length > 0 && (
+            {/* End message + Registration CTA (only for authenticated users) */}
+            {user && !hasMore && talents.length > 0 && (
               <div className="mt-10 rounded-3xl border border-dashed border-secondary/30 px-6 py-8 text-center">
                 <p className="text-secondary/60">Has visto todos los talentos disponibles</p>
                 <p className="mt-3 text-secondary">
