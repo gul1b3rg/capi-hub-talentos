@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { FaEye, FaLinkedin, FaBuilding, FaGlobe } from 'react-icons/fa';
 import { useCurrentProfile } from '../context/AuthContext';
@@ -15,6 +15,9 @@ const TalentPublicProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Track which profile ID was last viewed to prevent duplicate increments
+  const lastViewedIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     const loadData = async () => {
       if (!id) {
@@ -28,8 +31,11 @@ const TalentPublicProfile = () => {
         const talentData = await fetchPublicTalentProfile(id);
         setTalent(talentData);
 
-        // Incrementar vista (funciona incluso sin login)
-        await incrementProfileView(id, user?.id);
+        // Incrementar vista solo una vez por perfil (evita duplicados en re-renders)
+        if (lastViewedIdRef.current !== id) {
+          await incrementProfileView(id, user?.id);
+          lastViewedIdRef.current = id;
+        }
 
         // Cargar contador de vistas
         const count = await getProfileViewCount(id);
