@@ -11,6 +11,7 @@ import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
 import { handleLinkedInCallback, extractLinkedInData } from '../lib/linkedInAuthService';
 import { enrichProfileFromLinkedIn } from '../lib/profileService';
+import { encryptData, decryptData } from '../lib/encryption';
 
 export type ProfileRole = 'talento' | 'empresa';
 
@@ -56,10 +57,17 @@ const PROFILE_TTL = 5 * 60 * 1000; // 5 minutos
 const readCachedProfile = (): Profile | null => {
   if (typeof window === 'undefined') return null;
   try {
-    const raw = window.localStorage.getItem(PROFILE_CACHE_KEY);
-    if (!raw) return null;
+    const encrypted = window.localStorage.getItem(PROFILE_CACHE_KEY);
+    if (!encrypted) return null;
 
-    const cached = JSON.parse(raw) as CachedProfile;
+    // Decrypt the cached data
+    const cached = decryptData<CachedProfile>(encrypted);
+    if (!cached) {
+      // If decryption fails, remove invalid cache
+      window.localStorage.removeItem(PROFILE_CACHE_KEY);
+      return null;
+    }
+
     const now = Date.now();
 
     // Verificar si el cache expiró
@@ -70,6 +78,8 @@ const readCachedProfile = (): Profile | null => {
 
     return cached.profile;
   } catch {
+    // If any error occurs, remove cache and return null
+    window.localStorage.removeItem(PROFILE_CACHE_KEY);
     return null;
   }
 };
@@ -81,7 +91,9 @@ const writeCachedProfile = (value: Profile | null) => {
       profile: value,
       timestamp: Date.now(),
     };
-    window.localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(cached));
+    // Encrypt the cached data before storing
+    const encrypted = encryptData(cached);
+    window.localStorage.setItem(PROFILE_CACHE_KEY, encrypted);
   } else {
     window.localStorage.removeItem(PROFILE_CACHE_KEY);
   }
