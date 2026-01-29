@@ -158,13 +158,13 @@ const Vacancias = () => {
             </div>
 
             {/* Gradient fade overlay for non-authenticated users */}
-            {!user && jobs.length > MAX_JOBS_UNAUTHENTICATED && (
+            {!user && (
               <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background via-background/95 to-transparent" />
             )}
           </div>
 
           {/* CTA for non-authenticated users */}
-          {!user && jobs.length > MAX_JOBS_UNAUTHENTICATED && (
+          {!user && (
             <div className="relative z-10 -mt-16 rounded-3xl border border-secondary/20 bg-white px-8 py-10 text-center shadow-xl">
               <h3 className="text-2xl font-semibold text-secondary">
                 Para ver todas las vacancias disponibles

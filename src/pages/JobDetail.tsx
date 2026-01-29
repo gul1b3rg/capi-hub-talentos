@@ -91,6 +91,43 @@ const JobDetail = () => {
     );
   }
 
+  // Block non-authenticated users from viewing job details
+  if (!user) {
+    return (
+      <section className="mx-auto max-w-4xl px-4 py-8">
+        <div className="rounded-3xl border border-secondary/20 bg-white px-8 py-12 text-center shadow-xl">
+          <h2 className="text-2xl font-semibold text-secondary">
+            Registrate para ver el detalle de esta vacancia
+          </h2>
+          <p className="mx-auto mt-4 max-w-lg text-secondary/70">
+            Para visualizar las vacancias disponibles y postularte, registrate como profesional.
+            Si representas una aseguradora o empresa y quieres publicar vacancias, registra tu empresa.
+          </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link
+              to="/register-talent"
+              className="w-full rounded-full bg-accent px-6 py-3 font-semibold text-secondary shadow-lg transition hover:shadow-xl sm:w-auto"
+            >
+              Registrarme como profesional
+            </Link>
+            <Link
+              to="/register-company"
+              className="w-full rounded-full border-2 border-secondary/30 px-6 py-3 font-semibold text-secondary transition hover:border-secondary sm:w-auto"
+            >
+              Registrar empresa
+            </Link>
+          </div>
+          <p className="mt-6 text-sm text-secondary/60">
+            ¿Ya tenés una cuenta?{' '}
+            <Link to="/login" className="font-medium hover:underline" style={{ color: 'rgb(35, 110, 255)' }}>
+              Inicia sesión aquí
+            </Link>
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   const isOwner = role === 'empresa' && job.company?.owner_id === user?.id;
 
   return (
