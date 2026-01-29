@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-
 import { Analytics } from '@vercel/analytics/react';
 import Footer from './components/Footer';
 import Navbar from './components/Navbar';
+import ScrollToTop from './components/ScrollToTop';
 import { LoadingOverlay } from './components/LoadingOverlay';
 import { ProtectedRoute, ProtectedCompanyRoute, ProtectedTalentRoute } from './components/ProtectedRoute';
 import { useCurrentProfile } from './context/AuthContext';
@@ -70,6 +71,7 @@ const App = () => {
   return (
     <div className="min-h-screen bg-background text-text">
       <Navbar />
+      <ScrollToTop />
 
       {/* Spinner global durante loading (OAuth, fetch profile, etc) */}
       {/* Only show loading if we truly have no auth data */}
