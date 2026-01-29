@@ -411,7 +411,7 @@ const TalentProfile = () => {
               </div>
               {form.current_company && (
                 <div>
-                  <p className="text-sm font-semibold text-secondary">Empresa actual</p>
+                  <p className="text-sm font-semibold text-secondary">Empresa u organización actual</p>
                   <p className="mt-1 text-secondary/70">{form.current_company}</p>
                 </div>
               )}
@@ -546,11 +546,11 @@ const TalentProfile = () => {
               />
             </label>
             <label className="text-sm font-medium text-secondary">
-              Empresa actual (opcional)
+              Empresa u organización a la que perteneces actualmente (Opcional)
               <input
                 type="text"
                 className="mt-2 w-full rounded-2xl border border-secondary/20 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-                placeholder="Nombre de la empresa donde trabajas"
+                placeholder="Nombre de la empresa u organización donde trabajas"
                 value={form.current_company}
                 onChange={(event) => handleChange('current_company', event.target.value)}
               />
