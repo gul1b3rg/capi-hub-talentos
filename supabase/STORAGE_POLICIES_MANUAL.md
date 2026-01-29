@@ -1,3 +1,34 @@
+# Manual Supabase Policies Setup
+
+## ⚠️ CRITICAL: Apply Profile RLS Policies FIRST
+
+Before configuring storage, you must apply the missing profile RLS policies.
+Without these, users cannot read their own profile, causing "zombie sessions".
+
+### Run this SQL in Supabase SQL Editor:
+
+```sql
+-- Users can read their own profile
+CREATE POLICY "Users can read own profile"
+ON profiles FOR SELECT TO authenticated
+USING (id = auth.uid());
+
+-- Users can update their own profile
+CREATE POLICY "Users can update own profile"
+ON profiles FOR UPDATE TO authenticated
+USING (id = auth.uid())
+WITH CHECK (id = auth.uid());
+
+-- Users can insert their own profile
+CREATE POLICY "Users can insert own profile"
+ON profiles FOR INSERT TO authenticated
+WITH CHECK (id = auth.uid());
+```
+
+The full migration is in: `supabase/migrations/20260129000001_profiles_self_access_policies.sql`
+
+---
+
 # Manual Storage Policies Setup
 
 ## ⚠️ Important: Storage RLS Cannot Be Set Via SQL Migration
