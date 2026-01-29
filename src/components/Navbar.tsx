@@ -112,7 +112,7 @@ const Navbar = () => {
 
         <div className="hidden items-center gap-3 md:flex">
           {actionLinks.map((action) => renderActionLink(action, 'md'))}
-          {user && (
+          {user && role && (
             <button
               type="button"
               onClick={handleLogout}
@@ -150,7 +150,7 @@ const Navbar = () => {
             </div>
             <div className="mt-4 grid gap-3">
               {actionLinks.map((action) => renderActionLink(action, 'mobile'))}
-              {user && (
+              {user && role && (
                 <button
                   type="button"
                   onClick={handleLogout}
