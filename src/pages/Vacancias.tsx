@@ -5,6 +5,9 @@ import JobListFilters from '../components/JobListFilters';
 import InfiniteScrollTrigger from '../components/InfiniteScrollTrigger';
 import { fetchCompaniesForFilters } from '../lib/companyService';
 import { fetchPublicJobs, type JobWithRelations } from '../lib/jobService';
+import { useCurrentProfile } from '../context/AuthContext';
+
+const MAX_JOBS_UNAUTHENTICATED = 1; // Limit for non-authenticated users
 
 interface Filters {
   area: string;
@@ -42,6 +45,7 @@ const useDebouncedValue = <T,>(value: T, delay = 500): T => {
 };
 
 const Vacancias = () => {
+  const { user } = useCurrentProfile();
   const [filters, setFilters] = useState<Filters>(defaultFilters);
   const [jobs, setJobs] = useState<JobWithRelations[]>([]);
   const [companyOptions, setCompanyOptions] = useState<{ id: string; name: string }[]>([]);
@@ -145,14 +149,50 @@ const Vacancias = () => {
         </div>
       ) : (
         <>
-          <div className="mt-10 grid gap-5">
-            {jobs.map((job) => (
-              <JobCard key={job.id} job={job} />
-            ))}
+          <div className="relative mt-10">
+            <div className="grid gap-5">
+              {/* Show only first job for non-authenticated users */}
+              {(user ? jobs : jobs.slice(0, MAX_JOBS_UNAUTHENTICATED)).map((job) => (
+                <JobCard key={job.id} job={job} />
+              ))}
+            </div>
+
+            {/* Gradient fade overlay for non-authenticated users */}
+            {!user && jobs.length > MAX_JOBS_UNAUTHENTICATED && (
+              <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background via-background/95 to-transparent" />
+            )}
           </div>
 
-          {/* Infinite scroll trigger */}
-          <InfiniteScrollTrigger onLoadMore={loadMoreJobs} hasMore={hasMore} loading={loadingMore} />
+          {/* CTA for non-authenticated users */}
+          {!user && jobs.length > MAX_JOBS_UNAUTHENTICATED && (
+            <div className="relative z-10 -mt-16 rounded-3xl border border-secondary/20 bg-white px-8 py-10 text-center shadow-xl">
+              <h3 className="text-2xl font-semibold text-secondary">
+                Para ver todas las vacancias disponibles
+              </h3>
+              <p className="mx-auto mt-3 max-w-lg text-secondary/70">
+                Registrate como profesional para postularte a las oportunidades, o registra tu aseguradora/empresa para publicar vacancias y encontrar talento.
+              </p>
+              <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Link
+                  to="/register-talent"
+                  className="w-full rounded-full bg-accent px-6 py-3 font-semibold text-secondary shadow-lg transition hover:shadow-xl sm:w-auto"
+                >
+                  Registrarme como profesional
+                </Link>
+                <Link
+                  to="/register-company"
+                  className="w-full rounded-full border-2 border-secondary/30 px-6 py-3 font-semibold text-secondary transition hover:border-secondary sm:w-auto"
+                >
+                  Registrar empresa
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* Infinite scroll trigger - only for authenticated users */}
+          {user && (
+            <InfiniteScrollTrigger onLoadMore={loadMoreJobs} hasMore={hasMore} loading={loadingMore} />
+          )}
         </>
       )}
     </section>
