@@ -209,7 +209,7 @@ const Talentos = () => {
                   Descubrí más talentos del sector asegurador
                 </h3>
                 <p className="mt-4 text-lg text-secondary/70">
-                  Registrate gratis para ver el directorio completo de {talents.length} profesionales
+                  Registrate para ver el directorio completo de profesionales del Hub.
                 </p>
                 <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
                   <Link
