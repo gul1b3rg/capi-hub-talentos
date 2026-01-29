@@ -133,10 +133,21 @@ const RegisterTalent = () => {
         subtitle="Elige cómo quieres registrarte"
         footerLinks={[
           { label: '¿Ya tenés cuenta?', to: '/login' },
-          { label: '¿Buscás registrar tu empresa?', to: '/register-company' },
         ]}
       >
         <div className="space-y-4">
+          {/* Info box para aclarar tipo de registro */}
+          <div className="flex items-start gap-2 rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-800">
+            <span className="shrink-0">ℹ️</span>
+            <p>
+              Este registro es para perfiles profesionales (individuales). Si deseas registrar una empresa,{' '}
+              <Link to="/register-company" className="font-medium text-blue-600 hover:underline">
+                dirígete aquí
+              </Link>
+              .
+            </p>
+          </div>
+
           <LinkedInButton mode="register" onError={setLinkedInError} className="w-full" />
 
           <button
@@ -162,7 +173,6 @@ const RegisterTalent = () => {
       subtitle="Crea tu perfil y accede a oportunidades curadas"
       footerLinks={[
         { label: '¿Ya tenés cuenta?', to: '/login' },
-        { label: '¿Buscás registrar tu empresa?', to: '/register-company' },
       ]}
     >
       {/* Back button */}
