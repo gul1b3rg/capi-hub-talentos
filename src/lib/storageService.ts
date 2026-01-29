@@ -103,13 +103,20 @@ const uploadCompressedBlob = async (blob: Blob, referenceId: string, attempt = 0
     throw error;
   }
 
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from(BUCKET).getPublicUrl(filePath);
+  // Generate signed URL with 24-hour expiration for company logos
+  const { data, error: urlError } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(filePath, 86400); // 24 hours
+
+  if (urlError || !data) {
+    // eslint-disable-next-line no-console
+    console.error('[storageService] Error creating signed URL for logo', urlError);
+    throw new Error('No se pudo generar la URL del logo');
+  }
 
   // eslint-disable-next-line no-console
-  console.log('[storageService] Uploaded logo URL', publicUrl);
-  return publicUrl;
+  console.log('[storageService] Uploaded logo URL', data.signedUrl);
+  return data.signedUrl;
 };
 
 export const uploadCompanyLogoFromUrl = async (logoUrl: string, referenceId: string) => {
@@ -202,13 +209,20 @@ export const uploadCvFile = async (file: File, userId: string, onProgress?: Uplo
     throw err;
   }
 
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from(CV_BUCKET).getPublicUrl(path);
+  // Generate signed URL with 1-hour expiration for CVs (sensitive data)
+  const { data, error: urlError } = await supabase.storage
+    .from(CV_BUCKET)
+    .createSignedUrl(path, 3600); // 1 hour
+
+  if (urlError || !data) {
+    // eslint-disable-next-line no-console
+    console.error('[storageService] Error creating signed URL for CV', urlError);
+    throw new Error('No se pudo generar la URL del CV');
+  }
 
   // eslint-disable-next-line no-console
-  console.log('[storageService] CV uploaded', { url: publicUrl });
-  return publicUrl;
+  console.log('[storageService] CV uploaded', { url: data.signedUrl });
+  return data.signedUrl;
 };
 
 /**
@@ -249,13 +263,20 @@ const uploadAvatarBlob = async (blob: Blob, userId: string, attempt = 0): Promis
     throw error;
   }
 
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(filePath);
+  // Generate signed URL with 24-hour expiration for avatars
+  const { data, error: urlError } = await supabase.storage
+    .from(AVATAR_BUCKET)
+    .createSignedUrl(filePath, 86400); // 24 hours
+
+  if (urlError || !data) {
+    // eslint-disable-next-line no-console
+    console.error('[storageService] Error creating signed URL for avatar', urlError);
+    throw new Error('No se pudo generar la URL del avatar');
+  }
 
   // eslint-disable-next-line no-console
-  console.log('[storageService] Avatar uploaded', publicUrl);
-  return publicUrl;
+  console.log('[storageService] Avatar uploaded', data.signedUrl);
+  return data.signedUrl;
 };
 
 /**
