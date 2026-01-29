@@ -131,9 +131,7 @@ const RegisterTalent = () => {
       <AuthLayout
         title="Registro de Talento"
         subtitle="Elige cómo quieres registrarte"
-        footerLinks={[
-          { label: '¿Ya tenés una cuenta? Inicia sesión.', to: '/login' },
-        ]}
+        footerLinks={[]}
       >
         <div className="space-y-4">
           <LinkedInButton mode="register" onError={setLinkedInError} className="w-full" />
@@ -150,14 +148,25 @@ const RegisterTalent = () => {
             <p className="rounded-2xl bg-red-50 px-4 py-2 text-sm text-red-600">{linkedInError}</p>
           )}
 
-          {/* Info box para aclarar tipo de registro */}
-          <p className="text-center text-sm text-slate-600">
-            Este registro es para perfiles profesionales (individuales). Si deseas registrar una empresa,{' '}
-            <Link to="/register-company" className="font-medium text-slate-800 hover:underline">
-              dirígete aquí
+          {/* Link a login */}
+          <p className="text-center text-sm text-secondary/70">
+            ¿Ya tenés una cuenta?{' '}
+            <Link to="/login" className="font-medium hover:underline" style={{ color: 'rgb(35, 110, 255)' }}>
+              Inicia sesión aquí
             </Link>
             .
           </p>
+
+          {/* Info box para aclarar tipo de registro */}
+          <div className="rounded-xl bg-slate-100 px-4 py-3">
+            <p className="text-center text-sm text-slate-600">
+              Este registro es para perfiles profesionales (individuales). Si deseas registrar una empresa,{' '}
+              <Link to="/register-company" className="font-medium hover:underline" style={{ color: 'rgb(35, 110, 255)' }}>
+                dirígete aquí
+              </Link>
+              .
+            </p>
+          </div>
         </div>
       </AuthLayout>
     );
@@ -168,9 +177,7 @@ const RegisterTalent = () => {
     <AuthLayout
       title="Registro de Talento"
       subtitle="Crea tu perfil y accede a oportunidades curadas"
-      footerLinks={[
-        { label: '¿Ya tenés una cuenta? Inicia sesión.', to: '/login' },
-      ]}
+      footerLinks={[]}
     >
       {/* Back button */}
       <button
@@ -269,6 +276,26 @@ const RegisterTalent = () => {
           {loading ? 'Creando perfil...' : 'Registrarme'}
         </button>
       </form>
+
+      {/* Link a login */}
+      <p className="mt-4 text-center text-sm text-secondary/70">
+        ¿Ya tenés una cuenta?{' '}
+        <Link to="/login" className="font-medium hover:underline" style={{ color: 'rgb(35, 110, 255)' }}>
+          Inicia sesión aquí
+        </Link>
+        .
+      </p>
+
+      {/* Info box para aclarar tipo de registro */}
+      <div className="mt-3 rounded-xl bg-slate-100 px-4 py-3">
+        <p className="text-center text-sm text-slate-600">
+          Este registro es para perfiles profesionales (individuales). Si deseas registrar una empresa,{' '}
+          <Link to="/register-company" className="font-medium hover:underline" style={{ color: 'rgb(35, 110, 255)' }}>
+            dirígete aquí
+          </Link>
+          .
+        </p>
+      </div>
     </AuthLayout>
   );
 };
