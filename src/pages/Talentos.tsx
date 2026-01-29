@@ -100,8 +100,8 @@ const Talentos = () => {
         {/* Filtros */}
         <TalentListFilters filters={filters} onFilterChange={handleFilterChange} />
 
-        {/* Stats */}
-        {!loading && !error && (
+        {/* Stats - Only visible for authenticated users */}
+        {user && !loading && !error && (
           <div className="mb-6 text-center">
             <div className="text-sm text-secondary/70">
               {talents.length > 0 ? (
