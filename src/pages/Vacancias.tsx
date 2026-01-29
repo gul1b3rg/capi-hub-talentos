@@ -117,6 +117,13 @@ const Vacancias = () => {
         <p className="text-xs uppercase tracking-[0.3em] text-secondary/70">Vacancias activas</p>
         <h1 className="mt-2 text-4xl font-semibold text-secondary">Explora oportunidades curadas</h1>
         <p className="text-secondary/70">Filtra por área, seniority, modalidad o empresa.</p>
+        <p className="mt-3 text-sm text-secondary/60">
+          ¿Tu aseguradora o empresa necesita contratar?{' '}
+          <Link to="/register-company" className="font-semibold text-primary hover:underline">
+            Publicá tu vacancia gratis
+          </Link>
+          , recibí postulaciones y gestioná todo desde un solo lugar.
+        </p>
       </div>
 
       <JobListFilters filters={filters} onChange={setFilters} companyOptions={companyOptions} />
